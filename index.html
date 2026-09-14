@@ -92,7 +92,8 @@
     dd { margin:6px 0 0; font-size:16px; font-weight:600; overflow-wrap:anywhere; }
     .liquidity-values dd { font-size:26px; letter-spacing:-.035em; }
     .holding-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
-    .holding-card { display:flex; flex-direction:column; }
+    .holding-card { position:relative; display:flex; flex-direction:column; }
+    .short-badge { flex:0 0 42px; width:42px; height:42px; margin-left:auto; display:grid; place-items:center; color:var(--red); font-size:42px; line-height:1; font-weight:700; }
     .exposure { margin:24px 0 20px; }
     .exposure dd { font-size:27px; letter-spacing:-.04em; }
     .metrics { margin:0 0 20px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 12px; }
@@ -131,14 +132,13 @@
     .profit-bar.gain { background:var(--green); border-top-left-radius:0; border-bottom-left-radius:0; }
     .profit-zero { position:absolute; left:calc(50% - 2px); top:14px; width:4px; height:4px; border-radius:50%; background:#8e8e93; }
     .profit-value { font-size:12px; font-weight:600; text-align:right; white-space:nowrap; }
-    .profit-axis { display:flex; justify-content:space-between; font-size:11px; color:var(--secondary); gap:6px; padding-bottom:8px; }
-    .profit-axis span { width:33.333%; } .profit-axis span:nth-child(2) { text-align:center; } .profit-axis span:last-child { text-align:right; }
-    .profit-total { display:flex; justify-content:space-between; gap:12px; border-top:1px solid var(--line); margin-top:16px; padding-top:16px; font-size:14px; }
+    .profit-total { display:flex; justify-content:space-between; align-items:baseline; gap:12px; border-bottom:1px solid var(--line); margin-bottom:16px; padding-bottom:16px; font-size:15px; font-weight:600; }
+    .profit-total strong { font-size:22px; font-weight:700; letter-spacing:-.02em; }
     .allocation-summary { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:20px; padding:24px 0; border-bottom:1px solid var(--line); }
     .allocation-summary dl { margin:0; }
     .allocation-summary dd { font-size:clamp(1.75rem,3vw,2.5rem); line-height:1.2; letter-spacing:-.045em; }
     .allocation-count { margin:0 0 3px; padding:7px 12px; border-radius:9px; background:var(--bg); color:var(--secondary); font-size:.8125rem; }
-    .allocation-layout { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:32px; align-items:start; padding-top:28px; }
+    .allocation-layout { padding-top:28px; }
     .allocation-overview { display:grid; justify-items:center; gap:24px; padding:20px; background:#f7f8fa; border-radius:18px; }
     .allocation-treemap { position:relative; width:100%; aspect-ratio:5/4; overflow:hidden; border-radius:12px; }
     .treemap-tile { position:absolute; container-type:size; background:var(--asset-color); box-shadow:inset 0 0 0 1px #ffffffcc; overflow:hidden; }
@@ -149,7 +149,6 @@
     .treemap-label .logo { flex:0 0 32px; width:32px; height:32px; border-radius:9px; }
     .treemap-label .logo img { padding:5px; }
     .treemap-tile.medium .logo { display:none; }
-    .treemap-note { width:100%; margin:0; color:var(--secondary); font-size:12px; line-height:1.6; }
     @container (max-width:90px) { .treemap-tile.medium .logo { display:grid; } .treemap-tile.medium .treemap-name { display:none; } .treemap-label { gap:4px; padding:4px; } }
     @container (max-height:90px) { .treemap-tile.large .logo { display:none; } .treemap-label { gap:4px; } }
     @container (max-height:55px) { .treemap-percent { display:none; } .treemap-label .logo { flex-basis:24px; width:24px; height:24px; } }
@@ -169,10 +168,10 @@
     .allocation-share { font-weight:600; }
     .allocation-track { display:block; width:64px; max-width:100%; height:4px; margin:7px 0 0 auto; background:var(--bg); border-radius:4px; overflow:hidden; }
     .allocation-track i { display:block; height:100%; width:var(--share); background:var(--asset-color); border-radius:inherit; }
-    @media(max-width:760px) { .allocation-layout { grid-template-columns:minmax(0,1fr); gap:24px; } .allocation-overview { padding:12px; } }
+    @media(max-width:760px) { .allocation-overview { padding:12px; } }
     @media(max-width:400px) { .allocation-table th:first-child { width:40%; } .allocation-table th:nth-child(2) { width:24%; } .allocation-table td { font-size:.8125rem; } .allocation-asset { gap:7px; } }
     .chart-empty { padding:30px 0; color:var(--secondary); font-size:14px; text-align:center; }
-    @media(max-width:560px) { .portfolio-analysis { padding:18px; } .analysis-tabs { width:100%; } .analysis-tabs button { flex:1; padding-inline:12px; } .profit-row { grid-template-columns:112px minmax(0,1fr) 91px; gap:7px; } .profit-value { font-size:11px; } .profit-axis { font-size:10px; } }
+    @media(max-width:560px) { .portfolio-analysis { padding:18px; } .analysis-tabs { width:100%; } .analysis-tabs button { flex:1; padding-inline:12px; } .profit-row { grid-template-columns:112px minmax(0,1fr) 91px; gap:7px; } .profit-value { font-size:11px; } }
   </style>
 </head>
 <body>
@@ -235,7 +234,7 @@
     const glyph = a.symbol === 'USD' ? '$' : a.symbol === 'MARGIN' ? '%' : String(a.symbol || '?').slice(0,3);
     return `<span class="logo" aria-hidden="true"><span>${esc(glyph)}</span>${path ? `<img src="${esc(path)}" alt="" loading="lazy">` : ''}</span>`;
   }
-  function assetHead(a) { return `<header class="asset-head">${logo(a)}<div class="asset-copy"><strong>${esc(a.name)}</strong><span>${esc(a.symbol)}</span></div></header>`; }
+  function assetHead(a,badge='') { return `<header class="asset-head">${logo(a)}<div class="asset-copy"><strong>${esc(a.name)}</strong><span>${esc(a.symbol)}</span></div>${badge}</header>`; }
   function zone(score) { return score<=24 ? ['极端恐惧','#d70015'] : score<=44 ? ['恐惧','#c93400'] : score<=55 ? ['中性','#a07800'] : score<=74 ? ['贪婪','#248a3d'] : ['极端贪婪','#167337']; }
   function spark(history,color,id) {
     if (!history.length) return '<p class="score-note">暂无历史数据</p>';
@@ -251,10 +250,11 @@
   }
   function holding(a) {
     const gain=positionGain(a);
-    return `<article class="holding-card card" data-symbol="${esc(a.symbol)}">${assetHead(a)}<dl class="exposure"><dt>总敞口</dt><dd>${usd.format(a.exposure)}</dd></dl><dl class="metrics"><div><dt>持仓数量</dt><dd>$${qty.format(a.quantity)}</dd></div><div><dt>成本价</dt><dd>${usd.format(a.cost)}</dd></div><div><dt>现价</dt><dd>${usd.format(a.price)}</dd></div><div><dt>保证金</dt><dd>${usd.format(a.margin)}</dd></div></dl><footer class="pnl"><span>浮动盈亏</span><strong class="${tone(gain)}">${signed(gain)}</strong></footer></article>`;
+    const shortBadge=a.direction==='short' ? '<span class="short-badge" aria-label="做空（short）" title="做空（short）">S</span>' : '';
+    return `<article class="holding-card card" data-symbol="${esc(a.symbol)}">${assetHead(a,shortBadge)}<dl class="exposure"><dt>总敞口</dt><dd>${usd.format(a.exposure)}</dd></dl><dl class="metrics"><div><dt>持仓数量 (股)</dt><dd>${qty.format(a.quantity)}</dd></div><div><dt>成本价</dt><dd>${usd.format(a.cost)}</dd></div><div><dt>现价</dt><dd>${usd.format(a.price)}</dd></div><div><dt>保证金</dt><dd>${usd.format(a.margin)}</dd></div></dl><footer class="pnl"><span>浮动盈亏</span><strong class="${tone(gain)}">${signed(gain)}</strong></footer></article>`;
   }
 
-  const positionGain = a => Math.round((a.price-a.cost)*a.quantity*100)/100;
+  const positionGain = a => Math.round((a.direction==='short' ? a.cost-a.price : a.price-a.cost)*Math.abs(a.quantity)*100)/100;
   const percent = n => new Intl.NumberFormat('zh-CN',{style:'percent',maximumFractionDigits:2}).format(n);
   function positionColor(a) {
     // Use the asset color from data.json; neutral gray only when absent or invalid.
@@ -297,10 +297,8 @@
       const bar=gain===0 ? '<i class="profit-zero"></i>' : `<i class="profit-bar ${gain<0?'loss':'gain'}" style="left:${gain<0?50-width:50}%;width:${width}%"></i>`;
       return `<div class="profit-row" aria-label="${esc(a.name)}，总敞口 ${esc(usd.format(a.exposure))}，浮动盈亏 ${esc(signed(gain))}"><span class="profit-name" title="${esc(a.name)} · 总敞口 ${esc(usd.format(a.exposure))}">${logo(a)}<span class="profit-symbol">${esc(a.symbol)}</span></span><div class="profit-plot" aria-hidden="true">${bar}</div><span class="profit-value ${tone(gain)}">${signed(gain)}</span></div>`;
     }).join('');
-    const compact=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:1});
-    const axis=maxGain ? `<span>−${compact.format(maxGain)}</span><span>0</span><span>+${compact.format(maxGain)}</span>` : '<span></span><span>0</span><span></span>';
     const totalGain=Math.round(gains.reduce((sum,n)=>sum+n,0)*100)/100;
-    $('profitChart').innerHTML=`<div class="profit-row" aria-hidden="true"><span></span><div class="profit-axis">${axis}</div><span></span></div>${rows}<div class="profit-total"><span>合计浮动盈亏</span><strong class="${tone(totalGain)}">${signed(totalGain)}</strong></div>`;
+    $('profitChart').innerHTML=`<div class="profit-total"><span>合计浮动盈亏</span><strong class="${tone(totalGain)}">${signed(totalGain)}</strong></div>${rows}`;
 
     // Liquidity cash and the separate financing-margin account never enter this chart.
     // Absolute exposures keep short positions representable without negative tile sizes.
@@ -324,18 +322,12 @@
         : `${a.name} (${a.symbol}${a.exposure<0?' · 空头':''}) · 仓位 ${percent(share)} · 敞口 ${usd.format(a.exposure)}`;
       return `<div class="treemap-tile ${members?'other':share>=0.10?'large':'medium'}" role="img" tabindex="0" aria-label="${esc(label)}" title="${esc(label)}" style="left:${x}%;top:${y}%;width:${width}%;height:${height}%;--asset-color:${color}"><div class="treemap-label" aria-hidden="true">${members?'':logo(a)}<span class="treemap-name">${esc(a.name)}${a.exposure<0?' · 空头':''}</span><span class="treemap-percent">${percent(share)}</span></div></div>`;
     }).join('');
-    const topCount=Math.min(3,assets.length);
-    const topShare=assets.slice(0,topCount).reduce((sum,item)=>sum+item.share,0);
-    const details=assets.map(({a,share,color})=>`<tr style="--asset-color:${color};--share:${share*100}%"><td><div class="allocation-asset"><span class="allocation-dot" aria-hidden="true"></span><div><strong>${esc(a.symbol)}${a.exposure<0?' · 空头':''}</strong><small>${esc(a.name)}</small></div></div></td><td><span class="allocation-share">${percent(share)}</span><span class="allocation-track" aria-hidden="true"><i></i></span></td><td>${usd.format(a.exposure)}</td></tr>`).join('');
     $('positionChart').innerHTML=`
       <div class="allocation-summary"><dl><dt>${hasShort?'总绝对敞口':'持仓总敞口'} · USD</dt><dd>${usd.format(total)}</dd></dl><p class="allocation-count">${assets.length} 项资产</p></div>
       <div class="allocation-layout">
         <div class="allocation-overview">
-          <div class="allocation-treemap" role="group" aria-label="仓位树状图，区块面积表示绝对敞口占比，完整数据见仓位明细表。">${tiles}</div>
-          <p class="treemap-note">面积表示仓位占比${hasShort?'（按绝对敞口计算）':''}；低于 2% 的仓位合并为“其他”。${small.length?`其他包含 ${small.length} 项资产，明细表保留全部持仓。`:''}</p>
-          <p class="allocation-insight"><span>前 ${topCount} 项资产合计</span><strong>${percent(topShare)}</strong></p>
+          <div class="allocation-treemap" role="group" aria-label="仓位树状图，区块面积表示绝对敞口占比。">${tiles}</div>
         </div>
-        <table class="allocation-table" aria-label="仓位明细，按绝对敞口从大到小排列"><thead><tr><th scope="col">资产</th><th scope="col">仓位占比</th><th scope="col">敞口 · USD</th></tr></thead><tbody>${details}</tbody></table>
       </div>`;
 
   }

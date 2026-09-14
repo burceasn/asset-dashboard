@@ -132,7 +132,11 @@ def sentiment_result(points, source: str, days: int) -> dict:
     # 每个 UTC 日期保留最新观测值，历史从旧到新；不生成模拟值。
     daily = {}
     for observed, score in sorted(points):
-        daily[observed.date()] = (observed, number(score, "情绪分数", minimum=0, maximum=100))
+        score = number(score, "情绪分数", minimum=0, maximum=100)
+        daily[observed.date()] = (
+            observed,
+            int(Decimal(str(score)).quantize(Decimal("1"), rounding=ROUND_HALF_UP)),
+        )
     records = list(daily.values())[-days:]
     observed, score = records[-1]
     if datetime.now(timezone.utc) - observed > timedelta(days=7):
@@ -274,6 +278,13 @@ def update_document(data: dict, client: HttpClient, days: int = 30) -> tuple[dic
                         raise DataError("拒绝用较旧指数覆盖已有数据")
                     target.update(result)
                 else:
+                    if key == "price.XIAOMI-USDT-SWAP":
+                        result = number(
+                            (Decimal(str(result)) * Decimal("7.84")).quantize(
+                                Decimal("0.01"), rounding=ROUND_HALF_UP
+                            ),
+                            "小米换算后价格",
+                        )
                     changes = [(asset, updated_exposure(asset, result)) for asset in targets[key]]
                     for asset, exposure in changes:
                         asset["price"] = result
