@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Atlas — 资产看板</title>
+  <style>
+    :root {
+      --bg: #f2f2f7;
+      --surface: rgba(255, 255, 255, .82);
+      --surface-solid: #fff;
+      --text: #1d1d1f;
+      --secondary: #6e6e73;
+      --tertiary: #8e8e93;
+      --line: rgba(60, 60, 67, .12);
+      --blue: #007aff;
+      --green: #248a3d;
+      --red: #d70015;
+      --orange: #c93400;
+      --shadow: 0 18px 44px rgba(0, 0, 0, .07), 0 2px 8px rgba(0, 0, 0, .04);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 9% 0%, rgba(0, 122, 255, .08), transparent 28rem),
+        radial-gradient(circle at 92% 12%, rgba(52, 199, 89, .07), transparent 24rem),
+        var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-variant-numeric: tabular-nums;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; }
+    .shell { width: min(1440px, calc(100% - 48px)); margin: 0 auto; padding: 36px 0 56px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px;
+      color: white; background: #1d1d1f; box-shadow: inset 0 0 0 1px rgba(255,255,255,.16);
+    }
+    .brand-mark svg { width: 21px; height: 21px; }
+    .brand-copy strong { display: block; font-size: 15px; letter-spacing: -.01em; }
+    .brand-copy span { color: var(--secondary); font-size: 12px; }
+    .updated { display: flex; align-items: center; gap: 8px; color: var(--secondary); font-size: 12px; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(36,138,61,.10); }
+
+
+    [hidden] { display:none !important; }
+    .card { background:var(--surface); border:1px solid #fff; border-radius:22px; box-shadow:var(--shadow); }
+    h1 { margin:0; font-size:24px; line-height:1.25; font-weight:600; letter-spacing:-.025em; }
+    h2 { margin:0; font-size:20px; letter-spacing:-.025em; }
+    .section-head { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:30px 0 16px; }
+    .section-head p,.section-head span { margin:0; color:var(--secondary); font-size:13px; }
+    .sentiment-grid,.liquidity-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+    .sentiment { padding:24px; }
+    .sentiment-head,.asset-head { display:flex; align-items:center; gap:12px; }
+    .market-icon,.logo { flex:0 0 42px; width:42px; height:42px; border-radius:13px; display:grid; place-items:center; background:#edf3fc; color:var(--blue); position:relative; overflow:hidden; }
+    .market-icon.crypto { color:#ba7000; background:#fff3df; }
+    .market-icon svg { width:25px; height:25px; }
+    .market-copy strong,.asset-copy strong { display:block; font-size:15px; overflow-wrap:anywhere; }
+    .market-copy span,.asset-copy span { display:block; color:var(--secondary); font-size:12px; margin-top:4px; }
+    .asset-head { min-height:44px; }
+    .asset-copy { min-width:0; }
+    .logo { background:#f2f2f7; color:#55555f; font-size:12px; font-weight:700; }
+    .logo img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; padding:7px; background:#f2f2f7; }
+    .sentiment-body { display:grid; grid-template-columns:144px minmax(0,1fr); align-items:center; gap:24px; margin:22px 0; }
+    .gauge { width:144px; height:144px; position:relative; }
+    .gauge svg { width:100%; height:100%; }
+    .gauge-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .gauge-center strong { font-size:38px; line-height:1.1; letter-spacing:-.05em; }
+    .gauge-center span { font-size:14px; margin-top:5px; }
+    .range { height:9px; border-radius:10px; background:linear-gradient(90deg,#e25a53,#e9a251,#d5b83e,#6faf68,#248a3d); position:relative; }
+    .range i { position:absolute; top:-4px; height:17px; width:4px; border-radius:3px; background:#1d1d1f; box-shadow:0 0 0 2px white; transform:translateX(-50%); }
+    .range-labels { display:flex; justify-content:space-between; color:var(--secondary); font-size:12px; margin-top:12px; gap:8px; }
+    .score-note { color:var(--secondary); font-size:13px; margin:18px 0 0; line-height:1.6; }
+    .history { padding-top:18px; border-top:1px solid var(--line); }
+    .history-head,.history-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; color:var(--secondary); }
+    .history-head { margin-bottom:12px; }
+    .history-head strong { font-size:13px; font-weight:600; }
+    .spark { display:block; width:100%; height:106px; margin-bottom:8px; }
+    .liquidity-grid { margin-bottom:18px; }
+    .liquidity-card,.holding-card { padding:22px; min-width:0; }
+    .liquidity-values { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:22px 0 0; }
+    dt { color:var(--secondary); font-size:13px; }
+    dd { margin:6px 0 0; font-size:16px; font-weight:600; overflow-wrap:anywhere; }
+    .liquidity-values dd { font-size:26px; letter-spacing:-.035em; }
+    .holding-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
+    .holding-card { display:flex; flex-direction:column; }
+    .exposure { margin:24px 0 20px; }
+    .exposure dd { font-size:27px; letter-spacing:-.04em; }
+    .metrics { margin:0 0 20px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 12px; }
+    .pnl { margin-top:auto; padding:14px 0 0; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .pnl>span { color:var(--secondary); font-size:12px; }
+    .pnl strong { font-size:16px; }
+    .positive { color:var(--green); } .negative { color:var(--red); } .neutral { color:var(--secondary); }
+    .state { padding:28px; margin:20px 0; line-height:1.6; }
+    button { border:1px solid var(--line); background:white; color:var(--blue); border-radius:10px; padding:10px 18px; cursor:pointer; }
+    button:focus-visible { outline:3px solid #007aff66; outline-offset:3px; }
+    .footer { margin-top:24px; display:flex; justify-content:space-between; gap:16px; color:var(--secondary); font-size:12px; line-height:1.6; }
+    @media(max-width:1150px) { .holding-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .sentiment-body { gap:16px; grid-template-columns:124px minmax(0,1fr); } .gauge { width:124px; height:124px; } }
+    @media(max-width:900px) { .shell { width:calc(100% - 32px); padding-top:24px; } .holding-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .sentiment-grid { grid-template-columns:1fr; } }
+    @media(max-width:560px) { .shell { width:calc(100% - 24px); padding-top:20px; } .topbar { align-items:flex-start; gap:12px; } .updated { max-width:135px; font-size:11px; line-height:1.6; } .brand-copy span { display:none; } .holding-grid,.liquidity-grid { grid-template-columns:1fr; } .sentiment,.holding-card,.liquidity-card { padding:20px; } .sentiment-body { grid-template-columns:110px minmax(0,1fr); gap:16px; } .gauge { width:110px; height:110px; } .gauge-center strong { font-size:32px; } .range-labels { font-size:12px; } .range-labels span:nth-child(2) { display:none; } .footer { flex-direction:column; gap:4px; } .liquidity-values dd { font-size:24px; } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none!important; animation:none!important; } }
+
+    @media(max-width:560px) { .topbar { flex-wrap:wrap; align-items:center; } .updated { max-width:none; } h1 { font-size:22px; } }
+    .portfolio-analysis { margin-top:30px; padding:24px; min-width:0; }
+    .analysis-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:18px; padding-bottom:20px; border-bottom:1px solid var(--line); }
+    .analysis-tabs { display:flex; padding:4px; gap:4px; border-radius:12px; background:var(--bg); }
+    .analysis-tabs button { min-height:44px; padding:9px 20px; border:0; border-radius:9px; background:transparent; color:var(--secondary); font-size:.875rem; font-weight:500; }
+    .analysis-tabs button[aria-selected="true"] { background:var(--surface-solid); color:var(--text); box-shadow:0 2px 6px #00000012; font-weight:600; }
+    .analysis-tabs button:hover { color:var(--text); }
+    .analysis-panel:focus-visible { outline:3px solid #007aff66; outline-offset:4px; border-radius:8px; }
+    .chart-description { margin:7px 0 22px; color:var(--secondary); font-size:13px; line-height:1.6; }
+    .profit-row { display:grid; grid-template-columns:170px minmax(0,1fr) 106px; align-items:center; gap:12px; min-height:40px; }
+    .profit-name { display:flex; align-items:center; gap:10px; min-width:0; font-size:12px; font-weight:600; }
+    .profit-name .logo { flex:0 0 32px; width:32px; height:32px; border-radius:10px; }
+    .profit-name .logo img { padding:5px; }
+    .profit-symbol { min-width:0; overflow-wrap:anywhere; }
+    #profitChart { margin-top:22px; }
+    .profit-row { min-height:46px; }
+    .profit-plot { position:relative; height:32px; background:linear-gradient(to right,transparent calc(50% - .5px),#b8b8c1 calc(50% - .5px),#b8b8c1 calc(50% + .5px),transparent calc(50% + .5px)); }
+    .profit-bar { position:absolute; top:8px; height:16px; border-radius:3px; }
+    .profit-bar.loss { background:var(--red); border-top-right-radius:0; border-bottom-right-radius:0; }
+    .profit-bar.gain { background:var(--green); border-top-left-radius:0; border-bottom-left-radius:0; }
+    .profit-zero { position:absolute; left:calc(50% - 2px); top:14px; width:4px; height:4px; border-radius:50%; background:#8e8e93; }
+    .profit-value { font-size:12px; font-weight:600; text-align:right; white-space:nowrap; }
+    .profit-axis { display:flex; justify-content:space-between; font-size:11px; color:var(--secondary); gap:6px; padding-bottom:8px; }
+    .profit-axis span { width:33.333%; } .profit-axis span:nth-child(2) { text-align:center; } .profit-axis span:last-child { text-align:right; }
+    .profit-total { display:flex; justify-content:space-between; gap:12px; border-top:1px solid var(--line); margin-top:16px; padding-top:16px; font-size:14px; }
+    .allocation-summary { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:20px; padding:24px 0; border-bottom:1px solid var(--line); }
+    .allocation-summary dl { margin:0; }
+    .allocation-summary dd { font-size:clamp(1.75rem,3vw,2.5rem); line-height:1.2; letter-spacing:-.045em; }
+    .allocation-count { margin:0 0 3px; padding:7px 12px; border-radius:9px; background:var(--bg); color:var(--secondary); font-size:.8125rem; }
+    .allocation-layout { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:32px; align-items:start; padding-top:28px; }
+    .allocation-overview { display:grid; justify-items:center; gap:24px; padding:20px; background:#f7f8fa; border-radius:18px; }
+    .allocation-treemap { position:relative; width:100%; aspect-ratio:5/4; overflow:hidden; border-radius:12px; }
+    .treemap-tile { position:absolute; container-type:size; background:var(--asset-color); box-shadow:inset 0 0 0 1px #ffffffcc; overflow:hidden; }
+    .treemap-tile:focus-visible { outline:3px solid var(--text); outline-offset:-3px; z-index:1; }
+    .treemap-label { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:7px; padding:8px; text-align:center; color:#1d1d1f; background:#ffffffc9; }
+    .treemap-name { max-width:100%; font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .treemap-percent { font-size:12px; white-space:nowrap; }
+    .treemap-label .logo { flex:0 0 32px; width:32px; height:32px; border-radius:9px; }
+    .treemap-label .logo img { padding:5px; }
+    .treemap-tile.medium .logo { display:none; }
+    .treemap-note { width:100%; margin:0; color:var(--secondary); font-size:12px; line-height:1.6; }
+    @container (max-width:90px) { .treemap-tile.medium .logo { display:grid; } .treemap-tile.medium .treemap-name { display:none; } .treemap-label { gap:4px; padding:4px; } }
+    @container (max-height:90px) { .treemap-tile.large .logo { display:none; } .treemap-label { gap:4px; } }
+    @container (max-height:55px) { .treemap-percent { display:none; } .treemap-label .logo { flex-basis:24px; width:24px; height:24px; } }
+    @container (max-width:42px) { .treemap-percent { display:none; } .treemap-label { padding:2px; } .treemap-label .logo { flex-basis:24px; width:24px; height:24px; } .treemap-name { font-size:11px; } }
+    .allocation-insight { width:100%; margin:0; padding-top:18px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; font-size:.8125rem; color:var(--secondary); }
+    .allocation-insight strong { color:var(--text); font-size:1rem; }
+    .allocation-table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    .allocation-table th { padding:0 0 12px; color:var(--secondary); font-size:.8125rem; font-weight:500; text-align:right; }
+    .allocation-table th:first-child { width:46%; text-align:left; }
+    .allocation-table th:nth-child(2) { width:22%; }
+    .allocation-table td { padding:13px 0; border-top:1px solid var(--line); text-align:right; vertical-align:middle; font-size:.875rem; overflow-wrap:anywhere; }
+    .allocation-table td:first-child { text-align:left; padding-right:12px; }
+    .allocation-asset { display:flex; align-items:center; gap:10px; min-width:0; }
+    .allocation-dot { flex:0 0 8px; height:8px; border-radius:50%; background:var(--asset-color); box-shadow:inset 0 0 0 1px #00000012; }
+    .allocation-asset strong { display:block; font-size:.875rem; font-weight:600; }
+    .allocation-asset small { display:block; margin-top:4px; color:var(--secondary); font-size:.8125rem; line-height:1.4; }
+    .allocation-share { font-weight:600; }
+    .allocation-track { display:block; width:64px; max-width:100%; height:4px; margin:7px 0 0 auto; background:var(--bg); border-radius:4px; overflow:hidden; }
+    .allocation-track i { display:block; height:100%; width:var(--share); background:var(--asset-color); border-radius:inherit; }
+    @media(max-width:760px) { .allocation-layout { grid-template-columns:minmax(0,1fr); gap:24px; } .allocation-overview { padding:12px; } }
+    @media(max-width:400px) { .allocation-table th:first-child { width:40%; } .allocation-table th:nth-child(2) { width:24%; } .allocation-table td { font-size:.8125rem; } .allocation-asset { gap:7px; } }
+    .chart-empty { padding:30px 0; color:var(--secondary); font-size:14px; text-align:center; }
+    @media(max-width:560px) { .portfolio-analysis { padding:18px; } .analysis-tabs { width:100%; } .analysis-tabs button { flex:1; padding-inline:12px; } .profit-row { grid-template-columns:112px minmax(0,1fr) 91px; gap:7px; } .profit-value { font-size:11px; } .profit-axis { font-size:10px; } }
+  </style>
+</head>
+<body>
+
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 17.5 9.2 12l3.2 3.1L20 7.5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7.5h5v5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="brand-copy"><h1 id="brandName">Atlas Portfolio</h1></div>
+      </div>
+      <div class="updated"><span id="updatedAt">数据已更新</span></div>
+    </header>
+    <div id="state" class="state card" role="status" hidden><p id="stateText"></p><button id="retry" type="button">重新加载</button></div>
+    <div id="content" hidden>
+      <section aria-labelledby="sentiment-title"><div class="section-head"><h2 id="sentiment-title">市场情绪</h2><span>恐惧与贪婪指数</span></div><div class="sentiment-grid" id="sentimentGrid"></div></section>
+      <section class="portfolio-analysis card" aria-labelledby="portfolio-charts-title">
+        <div class="analysis-header">
+          <h2 id="portfolio-charts-title">持仓分析</h2>
+          <div class="analysis-tabs" role="tablist" aria-label="持仓分析视图">
+            <button type="button" id="profit-tab" role="tab" aria-selected="true" aria-controls="profit-panel" tabindex="0">持仓盈亏</button>
+            <button type="button" id="position-tab" role="tab" aria-selected="false" aria-controls="position-panel" tabindex="-1">总体仓位</button>
+          </div>
+        </div>
+        <div class="analysis-panel" id="profit-panel" role="tabpanel" aria-labelledby="profit-tab" tabindex="0"><div id="profitChart"></div></div>
+        <div class="analysis-panel" id="position-panel" role="tabpanel" aria-labelledby="position-tab" tabindex="0" hidden><div id="positionChart"></div></div>
+      </section>
+      <section aria-labelledby="holdings-title"><div class="section-head"><h2 id="holdings-title">全部持仓</h2><span id="holdingCount"></span></div><div class="liquidity-grid" id="liquidityGrid"></div><div class="holding-grid" id="holdingGrid"></div></section>
+    </div>
+    <noscript><p class="state card">请启用 JavaScript 以查看资产看板。</p></noscript>
+  </main>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const usd = new Intl.NumberFormat('en-US', {style:'currency',currency:'USD'});
+  const qty = new Intl.NumberFormat('en-US', {maximumFractionDigits:8});
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const finite = v => typeof v === 'number' && Number.isFinite(v);
+  const signed = v => (v > 0 ? '+' : '') + usd.format(v);
+  const tone = v => v > 0 ? 'positive' : v < 0 ? 'negative' : 'neutral';
+  function validate(d) {
+    if (!d?.dashboard || !d.sentiment || !d.liquidity || !d.holdings || typeof d.holdings !== 'object') throw Error('数据结构不完整');
+    if (isNaN(new Date(d.dashboard.updatedAt).getTime())) throw Error('更新时间无效');
+    for (const key of ['usStocks','crypto']) {
+      const m = d.sentiment[key];
+      if (!m || !finite(m.score) || m.score<0 || m.score>100 || !Array.isArray(m.history) || !m.history.every(v => finite(v) && v>=0 && v<=100)) throw Error('市场情绪数据无效');
+    }
+    if (!finite(d.liquidity.cash?.balance) || !finite(d.liquidity.margin?.balance) || !finite(d.liquidity.margin?.annualRate)) throw Error('现金或保证金数据无效');
+    if (!Object.values(d.holdings).every(Array.isArray)) throw Error('持仓分组格式无效');
+    for (const a of Object.values(d.holdings).flat()) {
+      if (!a || !finite(a.exposure)) throw Error('持仓敞口无效');
+      if (a.exposure === 0) continue;
+      if (!['quantity','cost','price','margin'].every(k => finite(a[k]))) throw Error('持仓数值无效');
+    }
+    return d;
+  }
+  function logo(a) {
+    // Only relative asset paths are loaded; missing files leave the symbol visible.
+    const path = typeof a.logo === 'string' && /^asset\/[\w.-]+\.svg$/.test(a.logo) ? a.logo : '';
+    const glyph = a.symbol === 'USD' ? '$' : a.symbol === 'MARGIN' ? '%' : String(a.symbol || '?').slice(0,3);
+    return `<span class="logo" aria-hidden="true"><span>${esc(glyph)}</span>${path ? `<img src="${esc(path)}" alt="" loading="lazy">` : ''}</span>`;
+  }
+  function assetHead(a) { return `<header class="asset-head">${logo(a)}<div class="asset-copy"><strong>${esc(a.name)}</strong><span>${esc(a.symbol)}</span></div></header>`; }
+  function zone(score) { return score<=24 ? ['极端恐惧','#d70015'] : score<=44 ? ['恐惧','#c93400'] : score<=55 ? ['中性','#a07800'] : score<=74 ? ['贪婪','#248a3d'] : ['极端贪婪','#167337']; }
+  function spark(history,color,id) {
+    if (!history.length) return '<p class="score-note">暂无历史数据</p>';
+    const points = history.map((v,i) => [history.length===1 ? 250 : 12+i/(history.length-1)*476, 98-v*.86]);
+    const line=points.map(p=>p.join(',')).join(' '), last=points.at(-1);
+    return `<svg class="spark" viewBox="0 0 500 112" preserveAspectRatio="none" role="img" aria-label="${esc('历史指数（0 至 100）：'+history.join('、'))}"><defs><linearGradient id="gradient-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity=".02"/></linearGradient></defs><path d="M12 55H488 M12 98H488" stroke="#e5e5ea" stroke-dasharray="3 5" fill="none"/><path d="M${points[0][0]} 98 ${points.map(p=>'L'+p.join(' ')).join(' ')} L${last[0]} 98Z" fill="url(#gradient-${id})"/><polyline points="${line}" stroke="${color}" stroke-width="2.5" vector-effect="non-scaling-stroke" fill="none" stroke-linejoin="round"/><circle cx="${last[0]}" cy="${last[1]}" r="3.5" fill="${color}"/></svg>`;
+  }
+  function sentiment(key,m) {
+    const [label,color]=zone(m.score), c=2*Math.PI*55;
+    const icon = key==='usStocks' ? '<path d="M5 3v18M12 3v18M19 3v18"/><path d="M3 8h4v7H3zM10 5h4v6h-4zM17 11h4v6h-4z" fill="currentColor"/>' : '<circle cx="12" cy="12" r="9"/><path d="M9 7.5h4a2.25 2.25 0 0 1 0 4.5H9m0 0h4.5a2.25 2.25 0 0 1 0 4.5H9v-9M11 5v2.5m0 9V19"/>';
+    const change=m.history.length>1 ? m.history.at(-1)-m.history[0] : null;
+    return `<article class="sentiment card"><div class="sentiment-head"><span class="market-icon ${key==='crypto'?'crypto':''}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">${icon}</svg></span><div class="market-copy"><strong>${esc(m.name)}</strong><span>${esc(m.source)}</span></div></div><div class="sentiment-body"><div class="gauge" role="img" aria-label="${esc(m.name)}指数 ${m.score} 分，${label}"><svg viewBox="0 0 140 140" aria-hidden="true"><circle cx="70" cy="70" r="55" fill="none" stroke="#e9e9ef" stroke-width="11"/><circle cx="70" cy="70" r="55" fill="none" stroke="${color}" stroke-width="11" stroke-dasharray="${c*m.score/100} ${c}" transform="rotate(-90 70 70)"/></svg><div class="gauge-center" style="color:${color}"><strong>${m.score}</strong><span>${label}</span></div></div><div><div class="range" aria-hidden="true"><i style="left:${m.score}%"></i></div><div class="range-labels"><span>极端恐惧</span><span>中性</span><span>极端贪婪</span></div><p class="score-note">当前得分 ${m.score} / 100</p></div></div><div class="history"><div class="history-head"><span>历史走势 · ${m.history.length} 个观测值</span><strong>${change===null ? '暂无区间变化' : '较期初 '+(change>0?'+':'')+qty.format(change)+' 点'}</strong></div>${spark(m.history,color,key)}${m.history.length ? `<div class="history-foot"><span>期初 ${m.history[0]}</span><span>最近 ${m.history.at(-1)}</span></div>` : ''}</div></article>`;
+  }
+  function holding(a) {
+    const gain=positionGain(a);
+    return `<article class="holding-card card" data-symbol="${esc(a.symbol)}">${assetHead(a)}<dl class="exposure"><dt>总敞口</dt><dd>${usd.format(a.exposure)}</dd></dl><dl class="metrics"><div><dt>持仓数量</dt><dd>$${qty.format(a.quantity)}</dd></div><div><dt>成本价</dt><dd>${usd.format(a.cost)}</dd></div><div><dt>现价</dt><dd>${usd.format(a.price)}</dd></div><div><dt>保证金</dt><dd>${usd.format(a.margin)}</dd></div></dl><footer class="pnl"><span>浮动盈亏</span><strong class="${tone(gain)}">${signed(gain)}</strong></footer></article>`;
+  }
+
+  const positionGain = a => Math.round((a.price-a.cost)*a.quantity*100)/100;
+  const percent = n => new Intl.NumberFormat('zh-CN',{style:'percent',maximumFractionDigits:2}).format(n);
+  function positionColor(a) {
+    // Use the asset color from data.json; neutral gray only when absent or invalid.
+    const color=typeof a.color === 'string' ? a.color.trim() : '';
+    return /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(color) ? color : '#8e8e93';
+  }
+  // Recursively split the longer edge near half the weight. Every leaf retains
+  // its exact share of the rectangle; coordinates are percentages for resizing.
+  function weightedTreemap(items,x=0,y=0,width=100,height=100) {
+    if (!items.length) return [];
+    if (items.length===1) return [{item:items[0],x,y,width,height}];
+    const total=items.reduce((sum,item)=>sum+item.share,0);
+    let split=1, weight=items[0].share;
+    while (split<items.length-1 && Math.abs(weight+items[split].share-total/2)<Math.abs(weight-total/2)) {
+      weight+=items[split++].share;
+    }
+    const ratio=weight/total;
+    // Match the displayed 5:4 aspect ratio when choosing the longer edge.
+    if (width*1.25>=height) return [
+      ...weightedTreemap(items.slice(0,split),x,y,width*ratio,height),
+      ...weightedTreemap(items.slice(split),x+width*ratio,y,width*(1-ratio),height)
+    ];
+    return [
+      ...weightedTreemap(items.slice(0,split),x,y,width,height*ratio),
+      ...weightedTreemap(items.slice(split),x,y+height*ratio,width,height*(1-ratio))
+    ];
+  }
+  function renderPortfolioCharts(holdings) {
+    if (!holdings.length) {
+      $('profitChart').innerHTML='<p class="chart-empty">暂无非零敞口持仓</p>';
+      $('positionChart').innerHTML='<p class="chart-empty">暂无仓位数据</p>';
+      return;
+    }
+    const sorted=[...holdings].sort((a,b)=>b.exposure-a.exposure);
+    const gains=sorted.map(positionGain);
+    const maxGain=Math.max(...gains.map(Math.abs));
+    const scale=maxGain || 1;
+    const rows=sorted.map((a,i)=>{
+      const gain=gains[i], width=Math.abs(gain)/scale*50;
+      const bar=gain===0 ? '<i class="profit-zero"></i>' : `<i class="profit-bar ${gain<0?'loss':'gain'}" style="left:${gain<0?50-width:50}%;width:${width}%"></i>`;
+      return `<div class="profit-row" aria-label="${esc(a.name)}，总敞口 ${esc(usd.format(a.exposure))}，浮动盈亏 ${esc(signed(gain))}"><span class="profit-name" title="${esc(a.name)} · 总敞口 ${esc(usd.format(a.exposure))}">${logo(a)}<span class="profit-symbol">${esc(a.symbol)}</span></span><div class="profit-plot" aria-hidden="true">${bar}</div><span class="profit-value ${tone(gain)}">${signed(gain)}</span></div>`;
+    }).join('');
+    const compact=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:1});
+    const axis=maxGain ? `<span>−${compact.format(maxGain)}</span><span>0</span><span>+${compact.format(maxGain)}</span>` : '<span></span><span>0</span><span></span>';
+    const totalGain=Math.round(gains.reduce((sum,n)=>sum+n,0)*100)/100;
+    $('profitChart').innerHTML=`<div class="profit-row" aria-hidden="true"><span></span><div class="profit-axis">${axis}</div><span></span></div>${rows}<div class="profit-total"><span>合计浮动盈亏</span><strong class="${tone(totalGain)}">${signed(totalGain)}</strong></div>`;
+
+    // Liquidity cash and the separate financing-margin account never enter this chart.
+    // Absolute exposures keep short positions representable without negative tile sizes.
+    const total=sorted.reduce((sum,a)=>sum+Math.abs(a.exposure),0);
+    const hasShort=sorted.some(a=>a.exposure<0);
+
+    const assets=[...sorted].sort((a,b)=>Math.abs(b.exposure)-Math.abs(a.exposure)).map(a=>({
+      a, exposure:Math.abs(a.exposure), share:Math.abs(a.exposure)/total, color:positionColor(a)
+    }));
+    const small=assets.filter(item=>item.share<0.02);
+    const grouped=assets.filter(item=>item.share>=0.02);
+    if (small.length) grouped.push({
+      a:{name:'其他',symbol:'其他'},
+      share:small.reduce((sum,item)=>sum+item.share,0), color:'#8e8e93', members:small
+    });
+    grouped.sort((a,b)=>b.share-a.share);
+    const tiles=weightedTreemap(grouped).map(({item,x,y,width,height})=>{
+      const {a,share,color,members}=item;
+      const label=members
+        ? `其他 · 仓位 ${percent(share)}：`+members.map(member=>`${member.a.name} (${member.a.symbol}${member.a.exposure<0?' · 空头':''}) · ${percent(member.share)} · 敞口 ${usd.format(member.a.exposure)}`).join('；')
+        : `${a.name} (${a.symbol}${a.exposure<0?' · 空头':''}) · 仓位 ${percent(share)} · 敞口 ${usd.format(a.exposure)}`;
+      return `<div class="treemap-tile ${members?'other':share>=0.10?'large':'medium'}" role="img" tabindex="0" aria-label="${esc(label)}" title="${esc(label)}" style="left:${x}%;top:${y}%;width:${width}%;height:${height}%;--asset-color:${color}"><div class="treemap-label" aria-hidden="true">${members?'':logo(a)}<span class="treemap-name">${esc(a.name)}${a.exposure<0?' · 空头':''}</span><span class="treemap-percent">${percent(share)}</span></div></div>`;
+    }).join('');
+    const topCount=Math.min(3,assets.length);
+    const topShare=assets.slice(0,topCount).reduce((sum,item)=>sum+item.share,0);
+    const details=assets.map(({a,share,color})=>`<tr style="--asset-color:${color};--share:${share*100}%"><td><div class="allocation-asset"><span class="allocation-dot" aria-hidden="true"></span><div><strong>${esc(a.symbol)}${a.exposure<0?' · 空头':''}</strong><small>${esc(a.name)}</small></div></div></td><td><span class="allocation-share">${percent(share)}</span><span class="allocation-track" aria-hidden="true"><i></i></span></td><td>${usd.format(a.exposure)}</td></tr>`).join('');
+    $('positionChart').innerHTML=`
+      <div class="allocation-summary"><dl><dt>${hasShort?'总绝对敞口':'持仓总敞口'} · USD</dt><dd>${usd.format(total)}</dd></dl><p class="allocation-count">${assets.length} 项资产</p></div>
+      <div class="allocation-layout">
+        <div class="allocation-overview">
+          <div class="allocation-treemap" role="group" aria-label="仓位树状图，区块面积表示绝对敞口占比，完整数据见仓位明细表。">${tiles}</div>
+          <p class="treemap-note">面积表示仓位占比${hasShort?'（按绝对敞口计算）':''}；低于 2% 的仓位合并为“其他”。${small.length?`其他包含 ${small.length} 项资产，明细表保留全部持仓。`:''}</p>
+          <p class="allocation-insight"><span>前 ${topCount} 项资产合计</span><strong>${percent(topShare)}</strong></p>
+        </div>
+        <table class="allocation-table" aria-label="仓位明细，按绝对敞口从大到小排列"><thead><tr><th scope="col">资产</th><th scope="col">仓位占比</th><th scope="col">敞口 · USD</th></tr></thead><tbody>${details}</tbody></table>
+      </div>`;
+
+  }
+
+  function render(d) {
+    validate(d);
+    // One filtered collection feeds cards, counts and every portfolio calculation.
+    const holdings=Object.values(d.holdings).flat().filter(a => a.exposure !== 0);
+    $('sentimentGrid').innerHTML=['usStocks','crypto'].map(k=>sentiment(k,d.sentiment[k])).join('');
+    const l=d.liquidity;
+    $('liquidityGrid').innerHTML=`<article class="liquidity-card card">${assetHead(l.cash)}<dl class="liquidity-values"><div><dt>持有数量</dt><dd>${usd.format(l.cash.balance)}</dd></div></dl></article><article class="liquidity-card card">${assetHead(l.margin)}<dl class="liquidity-values"><div><dt>保证金余额</dt><dd>${usd.format(l.margin.balance)}</dd></div><div><dt>当前年利率</dt><dd>${(l.margin.annualRate*100).toFixed(2)}%</dd></div></dl></article>`;
+    $('holdingGrid').innerHTML=holdings.map(holding).join('') || '<p class="state card">暂无持仓</p>';
+    renderPortfolioCharts(holdings);
+    document.querySelectorAll('.logo img').forEach(img=>{ img.addEventListener('error',()=>img.remove()); if (img.complete && !img.naturalWidth) img.remove(); });
+    $('brandName').textContent=d.dashboard.name;
+    const updatedParts=Object.fromEntries(new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(d.dashboard.updatedAt)).map(part=>[part.type,part.value]));
+    $('updatedAt').textContent=`上次更新: ${updatedParts.year}/${updatedParts.month}/${updatedParts.day} ${updatedParts.hour}:${updatedParts.minute}`;
+    $('holdingCount').textContent=holdings.length+' 项持仓';
+    $('state').hidden=true; $('content').hidden=false;
+  }
+  async function load() {
+    $('retry').disabled=true;
+    try {
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),10000);
+      try {
+        const response=await fetch('./data.json',{cache:'no-store',signal:controller.signal});
+        if (!response.ok) throw Error('HTTP '+response.status);
+        render(await response.json());
+      } finally { clearTimeout(timeout); }
+    } catch(error) {
+      $('content').hidden=true; $('state').hidden=false;
+      $('stateText').textContent='无法加载资产数据。请检查同目录的 data.json 是否存在且格式正确，然后重试。';
+    } finally { $('retry').disabled=false; }
+  }
+  const analysisTabs=[$('profit-tab'),$('position-tab')];
+  function selectAnalysisTab(selected) {
+    analysisTabs.forEach(tab=>{
+      const active=tab===selected;
+      tab.setAttribute('aria-selected',String(active));
+      tab.tabIndex=active?0:-1;
+      $(tab.getAttribute('aria-controls')).hidden=!active;
+    });
+  }
+  analysisTabs.forEach((tab,index)=>{
+    tab.addEventListener('click',()=>selectAnalysisTab(tab));
+    tab.addEventListener('keydown',event=>{
+      let next;
+      if (event.key==='ArrowRight') next=(index+1)%analysisTabs.length;
+      else if (event.key==='ArrowLeft') next=(index+analysisTabs.length-1)%analysisTabs.length;
+      else if (event.key==='Home') next=0;
+      else if (event.key==='End') next=analysisTabs.length-1;
+      else return;
+      event.preventDefault();
+      selectAnalysisTab(analysisTabs[next]);
+      analysisTabs[next].focus();
+    });
+  });
+  $('retry').addEventListener('click',load);
+  load();
+})();
+</script>
+</body>
+</html>

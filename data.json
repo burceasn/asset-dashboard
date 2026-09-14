@@ -1,0 +1,436 @@
+{
+  "dashboard": {
+    "name": "Atlas Portfolio",
+    "subtitle": "全局资产控制台",
+    "currency": "USD",
+    "updatedAt": "2026-09-14T15:07:25+08:00",
+    "disclaimer": "示例数据仅用于前端界面检查",
+    "dataUpdate": {
+      "status": "partial",
+      "succeeded": [
+        "price.AAPL-USDT-SWAP",
+        "price.ANTHROPIC-USDT-SWAP",
+        "price.AVGO-USDT-SWAP",
+        "price.BE-USDT-SWAP",
+        "price.BNB-USDT",
+        "price.BRKB-USDT-SWAP",
+        "price.BTC-USDT",
+        "price.COST-USDT-SWAP",
+        "price.CRCL-USDT-SWAP",
+        "price.CXMT-USDT-SWAP",
+        "price.ETH-USDT",
+        "price.GOOGL-USDT-SWAP",
+        "price.MRVL-USDT-SWAP",
+        "price.MU-USDT-SWAP",
+        "price.NVDA-USDT-SWAP",
+        "price.OPENAI-USDT-SWAP",
+        "price.PLTR-USDT-SWAP",
+        "price.SPCX-USDT-SWAP",
+        "price.TSLA-USDT-SWAP",
+        "price.XIAOMI-USDT-SWAP",
+        "price.ZHIPU-USDT-SWAP",
+        "sentiment.crypto"
+      ],
+      "failed": {
+        "price.ALIBABA-USDT-SWAP": "OKX 51001: Instrument ID, Instrument ID code, or Spread ID doesn't exist.",
+        "price.NDAQ-USDT-SWAP": "OKX 51001: Instrument ID, Instrument ID code, or Spread ID doesn't exist.",
+        "price.TENCENT-USDT-SWAP": "OKX 51001: Instrument ID, Instrument ID code, or Spread ID doesn't exist.",
+        "price.TSMC-USDT-SWAP": "OKX 51001: Instrument ID, Instrument ID code, or Spread ID doesn't exist.",
+        "sentiment.usStocks": "HTTP 418"
+      },
+      "skipped": [],
+      "skippedZeroExposure": []
+    }
+  },
+  "sentiment": {
+    "usStocks": {
+      "name": "美股",
+      "source": "CNN Fear & Greed",
+      "score": 43,
+      "status": "恐惧",
+      "history": [
+        54,
+        51,
+        55,
+        49,
+        47,
+        45,
+        48,
+        44,
+        46,
+        43,
+        41,
+        42
+      ]
+    },
+    "crypto": {
+      "name": "加密货币",
+      "source": "Alternative.me Fear & Greed",
+      "score": 57.0,
+      "status": "贪婪",
+      "history": [
+        34.0,
+        31.0,
+        41.0,
+        46.0,
+        62.0,
+        72.0,
+        71.0,
+        66.0,
+        73.0,
+        74.0,
+        65.0,
+        71.0,
+        73.0,
+        68.0,
+        69.0,
+        62.0,
+        69.0,
+        63.0,
+        65.0,
+        74.0,
+        73.0,
+        73.0,
+        71.0,
+        69.0,
+        66.0,
+        69.0,
+        56.0,
+        63.0,
+        61.0,
+        57.0
+      ],
+      "historyDates": [
+        "2026-08-16",
+        "2026-08-17",
+        "2026-08-18",
+        "2026-08-19",
+        "2026-08-20",
+        "2026-08-21",
+        "2026-08-22",
+        "2026-08-23",
+        "2026-08-24",
+        "2026-08-25",
+        "2026-08-26",
+        "2026-08-27",
+        "2026-08-28",
+        "2026-08-29",
+        "2026-08-30",
+        "2026-08-31",
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-03",
+        "2026-09-04",
+        "2026-09-05",
+        "2026-09-06",
+        "2026-09-07",
+        "2026-09-08",
+        "2026-09-09",
+        "2026-09-10",
+        "2026-09-11",
+        "2026-09-12",
+        "2026-09-13",
+        "2026-09-14"
+      ],
+      "observedAt": "2026-09-14T00:00:00+00:00"
+    }
+  },
+  "liquidity": {
+    "cash": {
+      "symbol": "USD",
+      "name": "美元现金",
+      "balance": 18420,
+      "logo": "asset/CASH-1.svg"
+    },
+    "margin": {
+      "symbol": "MARGIN",
+      "name": "融资保证金",
+      "balance": 28600,
+      "annualRate": 0.0675,
+      "logo": "asset/CASH-2.svg"
+    }
+  },
+  "holdings": {
+    "listedEquities": [
+      {
+        "symbol": "AAPL",
+        "name": "Apple",
+        "logo": "asset/AAPL.svg",
+        "quantity": 210,
+        "cost": 191.2,
+        "price": 331.06,
+        "exposure": 69522.6,
+        "margin": 48155.1,
+        "color": "#000000"
+      },
+      {
+        "symbol": "ALIBABA",
+        "name": "Alibaba",
+        "logo": "asset/ALIBABA.svg",
+        "quantity": 260,
+        "cost": 78.4,
+        "price": 85.72,
+        "exposure": 0,
+        "margin": 18572.67,
+        "color": "#FF6A00"
+      },
+      {
+        "symbol": "AVGO",
+        "name": "Broadcom",
+        "logo": "asset/AVGO.svg",
+        "quantity": 135,
+        "cost": 147.2,
+        "price": 354.92,
+        "exposure": 47914.2,
+        "margin": 19288.13,
+        "color": "#CC092F"
+      },
+      {
+        "symbol": "BE",
+        "name": "Bloom Energy",
+        "logo": "asset/BE.svg",
+        "quantity": 480,
+        "cost": 18.4,
+        "price": 262.03,
+        "exposure": 125774.4,
+        "margin": 7422.86,
+        "color": "#3CAD3A"
+      },
+      {
+        "symbol": "BRKB",
+        "name": "Berkshire Hathaway",
+        "logo": "asset/BRK-B.svg",
+        "quantity": 72,
+        "cost": 402.1,
+        "price": 509.12,
+        "exposure": 36656.64,
+        "margin": 32889.6,
+        "color": "#003366"
+      },
+      {
+        "symbol": "COST",
+        "name": "Costco",
+        "logo": "asset/COST.svg",
+        "quantity": 38,
+        "cost": 741.5,
+        "price": 903.05,
+        "exposure": 34315.9,
+        "margin": 33717.4,
+        "color": "#E31837"
+      },
+      {
+        "symbol": "CRCL",
+        "name": "Circle",
+        "logo": "asset/CRCL.svg",
+        "quantity": 320,
+        "cost": 58.25,
+        "price": 90.11,
+        "exposure": 28835.2,
+        "margin": 15177.14,
+        "color": "#0B53BF"
+      },
+      {
+        "symbol": "GOOGL",
+        "name": "Alphabet",
+        "logo": "asset/GOOGL.svg",
+        "quantity": 180,
+        "cost": 154.7,
+        "price": 337.32,
+        "exposure": 60717.6,
+        "margin": 29588.4,
+        "color": "#4285F4"
+      },
+      {
+        "symbol": "MU",
+        "name": "Micron",
+        "logo": "asset/MICRON.svg",
+        "quantity": 225,
+        "cost": 96.1,
+        "price": 935.79,
+        "exposure": 210552.75,
+        "margin": 17429.46,
+        "color": "#BD03F7"
+      },
+      {
+        "symbol": "MRVL",
+        "name": "Marvell",
+        "logo": "asset/MRVL.svg",
+        "quantity": 290,
+        "cost": 67.8,
+        "price": 227.26,
+        "exposure": 65905.4,
+        "margin": 17774.58,
+        "color": "#0072CE"
+      },
+      {
+        "symbol": "QQQ",
+        "name": "Nasdaq",
+        "logo": "asset/NDAQ.svg",
+        "quantity": 240,
+        "cost": 68.25,
+        "price": 74.9,
+        "exposure": 17976.0,
+        "margin": 17976.0,
+        "color": "#0092BC"
+      },
+      {
+        "symbol": "NVDA",
+        "name": "NVIDIA",
+        "logo": "asset/NVDA.svg",
+        "quantity": 420,
+        "cost": 118.4,
+        "price": 215.51,
+        "exposure": 90514.2,
+        "margin": 39933.6,
+        "color": "#76B900"
+      },
+      {
+        "symbol": "PLTR",
+        "name": "Palantir",
+        "logo": "asset/PLTR.svg",
+        "quantity": 510,
+        "cost": 31.25,
+        "price": 165.07,
+        "exposure": 84185.7,
+        "margin": 15182.31,
+        "color": "#1E2124"
+      },
+      {
+        "symbol": "TENCENT",
+        "name": "Tencent",
+        "logo": "asset/TENCENT.svg",
+        "quantity": 300,
+        "cost": 47.8,
+        "price": 53.25,
+        "exposure": 0,
+        "margin": 13312.5,
+        "color": "#0052D9"
+      },
+      {
+        "symbol": "TSLA",
+        "name": "Tesla",
+        "logo": "asset/TSLA.svg",
+        "quantity": 95,
+        "cost": 238.5,
+        "price": 363.05,
+        "exposure": 34489.75,
+        "margin": 10743.08,
+        "color": "#E82127"
+      },
+      {
+        "symbol": "TSM",
+        "name": "TSMC",
+        "logo": "asset/TSMC.svg",
+        "quantity": 165,
+        "cost": 151.4,
+        "price": 174.25,
+        "exposure": 28751.25,
+        "margin": 23959.38,
+        "color": "#E60012"
+      },
+      {
+        "symbol": "XIAOMI",
+        "name": "Xiaomi",
+        "logo": "asset/XIAOMI.svg",
+        "quantity": 700,
+        "cost": 3.1,
+        "price": 3.378,
+        "exposure": 2364.6,
+        "margin": 2070.83,
+        "color": "#FF6900"
+      }
+    ],
+    "privateCompanies": [
+      {
+        "symbol": "ANTHROPIC",
+        "name": "Anthropic",
+        "logo": "asset/ANTHROPIC.svg",
+        "quantity": 125,
+        "cost": 84.0,
+        "price": 208.88,
+        "exposure": 26110.0,
+        "margin": 12062.5,
+        "color": "#D97757"
+      },
+      {
+        "symbol": "CXMT",
+        "name": "CXMT",
+        "logo": "asset/CXMT.svg",
+        "quantity": 180,
+        "cost": 42.5,
+        "price": 8.156,
+        "exposure": 1468.08,
+        "margin": 8496.0,
+        "color": "#003366"
+      },
+      {
+        "symbol": "OpenAI",
+        "name": "OpenAI",
+        "logo": "asset/OpenAI.svg",
+        "quantity": 90,
+        "cost": 132.0,
+        "price": 143.14,
+        "exposure": 12882.6,
+        "margin": 13320.0,
+        "color": "#000000"
+      },
+      {
+        "symbol": "SPCX",
+        "name": "SpaceX",
+        "logo": "asset/SPCX.svg",
+        "quantity": 150,
+        "cost": 112.0,
+        "price": 149.1,
+        "exposure": 22365.0,
+        "margin": 19275.0,
+        "color": "#005288"
+      },
+      {
+        "symbol": "ZHIPU",
+        "name": "Zhipu",
+        "logo": "asset/ZHIPU.svg",
+        "quantity": 220,
+        "cost": 28.6,
+        "price": 93.7,
+        "exposure": 20614.0,
+        "margin": 6908.0,
+        "color": "#0F62FE"
+      }
+    ],
+    "digitalAssets": [
+      {
+        "symbol": "BNB",
+        "name": "BNB",
+        "logo": "asset/BNB.svg",
+        "quantity": 18.5,
+        "cost": 525.0,
+        "price": 719.0,
+        "exposure": 13301.5,
+        "margin": 8849.17,
+        "color": "#F3BA2F"
+      },
+      {
+        "symbol": "BTC",
+        "name": "Bitcoin",
+        "logo": "asset/BTC.svg",
+        "quantity": 0.72,
+        "cost": 61240.0,
+        "price": 77132.3,
+        "exposure": 55535.26,
+        "margin": 40089.6,
+        "color": "#F7931A"
+      },
+      {
+        "symbol": "ETH",
+        "name": "Ethereum",
+        "logo": "asset/ETH.svg",
+        "quantity": 8.4,
+        "cost": 2840.0,
+        "price": 2491.18,
+        "exposure": 20925.91,
+        "margin": 27451.2,
+        "color": "#627EEA"
+      }
+    ]
+  }
+}
