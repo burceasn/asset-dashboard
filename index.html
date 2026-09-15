@@ -141,7 +141,33 @@
     .allocation-layout { padding-top:28px; }
     .allocation-overview { display:grid; justify-items:center; gap:24px; padding:20px; background:#f7f8fa; border-radius:18px; }
     .allocation-treemap { position:relative; width:100%; aspect-ratio:5/4; overflow:hidden; border-radius:12px; }
-    .treemap-tile { position:absolute; container-type:size; background:var(--asset-color); box-shadow:inset 0 0 0 1px #ffffffcc; overflow:hidden; }
+    .treemap-tile { position:absolute; container-type:size; background:var(--asset-color); box-shadow:inset 0 0 0 1px #ffffffcc; overflow:hidden; border:0; border-radius:0; padding:0; touch-action:manipulation; }
+    .treemap-tile[aria-expanded="true"] { box-shadow:inset 0 0 0 3px var(--blue); z-index:1; }
+    .treemap-tile[aria-expanded="true"] .treemap-label { inset:3px; }
+    .treemap-label { pointer-events:none; }
+    .treemap-tile { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
+    .allocation-help { margin:0; color:var(--secondary); font-size:.8125rem; line-height:1.6; }
+    .allocation-picker { display:flex; align-items:center; flex-wrap:wrap; gap:12px; width:100%; font-size:.875rem; }
+    .allocation-picker select { flex:1; min-width:0; min-height:44px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface-solid); color:var(--text); font:inherit; }
+    .position-detail { position:fixed; z-index:20; width:min(380px,calc(100vw - 24px)); max-height:calc(100dvh - 24px); overflow:auto; overscroll-behavior:contain; padding:20px; border:1px solid var(--line); border-radius:22px; background:var(--surface-solid); box-shadow:0 16px 56px #00000024,0 2px 8px #0000000d; }
+    .detail-header { display:flex; align-items:center; gap:12px; }
+    .detail-heading { flex:1; min-width:0; }
+    .detail-heading h3 { margin:0; font-size:1.0625rem; font-weight:600; overflow-wrap:anywhere; }
+    .detail-heading p { margin:4px 0 0; color:var(--secondary); font-size:.8125rem; }
+    .detail-close { flex:0 0 44px; width:44px; height:44px; padding:0; border:0; border-radius:50%; background:var(--bg); color:var(--secondary); font-size:24px; }
+    .detail-share { margin:22px 0 16px; }
+    .detail-share dd { margin-top:4px; font-size:2.5rem; line-height:1.15; letter-spacing:-.045em; }
+    .detail-track { height:6px; background:var(--bg); border-radius:6px; overflow:hidden; margin-bottom:20px; }
+    .detail-track span { display:block; height:100%; width:var(--share); background:var(--asset-color); border-radius:inherit; }
+    .detail-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px 16px; margin:0; padding:18px; background:var(--bg); border-radius:14px; }
+    .detail-metrics dd { font-size:.9375rem; }
+    .detail-note { margin:16px 0 0; color:var(--secondary); font-size:.8125rem; line-height:1.6; }
+    .detail-members { margin:0; padding:0; list-style:none; }
+    .detail-member { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 0; border-bottom:1px solid var(--line); font-size:.875rem; }
+    .detail-member>div { min-width:0; overflow-wrap:anywhere; }
+    .detail-member small { display:block; color:var(--secondary); margin-top:5px; line-height:1.5; }
+    .detail-member>strong { flex-shrink:0; }
+    @media(max-width:560px) { .position-detail { inset:auto 12px max(12px,env(safe-area-inset-bottom)) !important; width:auto; max-height:65dvh; } }
     .treemap-tile:focus-visible { outline:3px solid var(--text); outline-offset:-3px; z-index:1; }
     .treemap-label { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:7px; padding:8px; text-align:center; color:#1d1d1f; background:#ffffffc9; }
     .treemap-name { max-width:100%; font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -282,7 +308,9 @@
       ...weightedTreemap(items.slice(split),x,y+height*ratio,width,height*(1-ratio))
     ];
   }
+  let closePositionDetail = () => {};
   function renderPortfolioCharts(holdings) {
+    closePositionDetail();
     if (!holdings.length) {
       $('profitChart').innerHTML='<p class="chart-empty">暂无非零敞口持仓</p>';
       $('positionChart').innerHTML='<p class="chart-empty">暂无仓位数据</p>';
@@ -303,7 +331,7 @@
     // Liquidity cash and the separate financing-margin account never enter this chart.
     // Absolute exposures keep short positions representable without negative tile sizes.
     const total=sorted.reduce((sum,a)=>sum+Math.abs(a.exposure),0);
-    const hasShort=sorted.some(a=>a.exposure<0);
+    const hasShort=sorted.some(a=>a.direction==='short');
 
     const assets=[...sorted].sort((a,b)=>Math.abs(b.exposure)-Math.abs(a.exposure)).map(a=>({
       a, exposure:Math.abs(a.exposure), share:Math.abs(a.exposure)/total, color:positionColor(a)
@@ -315,22 +343,146 @@
       share:small.reduce((sum,item)=>sum+item.share,0), color:'#8e8e93', members:small
     });
     grouped.sort((a,b)=>b.share-a.share);
-    const tiles=weightedTreemap(grouped).map(({item,x,y,width,height})=>{
+    const tiles=weightedTreemap(grouped).map(({item,x,y,width,height},index)=>{
       const {a,share,color,members}=item;
       const label=members
-        ? `其他 · 仓位 ${percent(share)}：`+members.map(member=>`${member.a.name} (${member.a.symbol}${member.a.exposure<0?' · 空头':''}) · ${percent(member.share)} · 敞口 ${usd.format(member.a.exposure)}`).join('；')
-        : `${a.name} (${a.symbol}${a.exposure<0?' · 空头':''}) · 仓位 ${percent(share)} · 敞口 ${usd.format(a.exposure)}`;
-      return `<div class="treemap-tile ${members?'other':share>=0.10?'large':'medium'}" role="img" tabindex="0" aria-label="${esc(label)}" title="${esc(label)}" style="left:${x}%;top:${y}%;width:${width}%;height:${height}%;--asset-color:${color}"><div class="treemap-label" aria-hidden="true">${members?'':logo(a)}<span class="treemap-name">${esc(a.name)}${a.exposure<0?' · 空头':''}</span><span class="treemap-percent">${percent(share)}</span></div></div>`;
+        ? `其他 · 仓位 ${percent(share)}：`+members.map(member=>`${member.a.name} (${member.a.symbol}${member.a.direction==='short'?' · 空头':''}) · ${percent(member.share)} · 敞口 ${usd.format(member.a.exposure)}`).join('；')
+        : `${a.name} (${a.symbol}${a.direction==='short'?' · 空头':''}) · 仓位 ${percent(share)} · 敞口 ${usd.format(a.exposure)}`;
+      return `<button type="button" class="treemap-tile ${members?'other':share>=0.10?'large':'medium'}" data-position="${index}" aria-label="${esc(label)}，查看详情" aria-expanded="false" aria-controls="position-detail" aria-haspopup="dialog" style="left:${x}%;top:${y}%;width:${width}%;height:${height}%;--asset-color:${color}"><span class="treemap-label" aria-hidden="true">${members?'':logo(a)}<span class="treemap-name">${esc(a.name)}${a.direction==='short'?' · 空头':''}</span><span class="treemap-percent">${percent(share)}</span></span></button>`;
     }).join('');
     $('positionChart').innerHTML=`
       <div class="allocation-summary"><dl><dt>${hasShort?'总绝对敞口':'持仓总敞口'} · USD</dt><dd>${usd.format(total)}</dd></dl><p class="allocation-count">${assets.length} 项资产</p></div>
       <div class="allocation-layout">
         <div class="allocation-overview">
           <div class="allocation-treemap" role="group" aria-label="仓位树状图，区块面积表示绝对敞口占比。">${tiles}</div>
+          <p class="allocation-help">电脑端悬停片刻、手机端长按区块查看详情。区块面积按绝对敞口占比计算。</p>
+          <label class="allocation-picker" for="position-picker">查看资产<select id="position-picker"><option value="">选择资产或其他组合</option>${grouped.map((item,index)=>`<option value="${index}">${esc(item.a.name)} · ${percent(item.share)}</option>`).join('')}</select></label>
         </div>
-      </div>`;
+      </div>
+      <section id="position-detail" class="position-detail" role="dialog" aria-labelledby="position-detail-title" hidden></section>`;
+    setupPositionDetails(grouped);
 
   }
+
+  function setupPositionDetails(items) {
+    const panel=$('position-detail'), picker=$('position-picker');
+    const tiles=[...$('positionChart').querySelectorAll('.treemap-tile')];
+    let active=null, pinned=false, dismissTimer, opener=null, suppressHover=false;
+    let openTimer, press=null, suppressPressClick=false;
+    const cancelOpen=()=>{ clearTimeout(openTimer); press=null; };
+    const cancelDismiss=()=>clearTimeout(dismissTimer);
+    function close(restoreFocus=false) {
+      cancelOpen();
+      cancelDismiss();
+      if (panel.hidden) return;
+      panel.hidden=true;
+      tiles.forEach(tile=>tile.setAttribute('aria-expanded','false'));
+      picker.value='';
+      active=null;
+      pinned=false;
+      suppressHover=true;
+      if (restoreFocus && opener?.isConnected) opener.focus({preventScroll:true});
+    }
+    closePositionDetail=close;
+    function position() {
+      if (active===null || matchMedia('(max-width:560px)').matches) return;
+      const rect=tiles[active].getBoundingClientRect();
+      const width=panel.offsetWidth, height=panel.offsetHeight;
+      // Place beside the tile, then clamp to the visible viewport.
+      const left=rect.right+12+width<=innerWidth-12 ? rect.right+12 : rect.left-width-12;
+      panel.style.left=Math.max(12,Math.min(left,innerWidth-width-12))+'px';
+      panel.style.top=Math.max(12,Math.min(rect.top,innerHeight-height-12))+'px';
+    }
+    function open(index,pin=false,source=tiles[index]) {
+      cancelOpen();
+      cancelDismiss();
+      if (pinned && !pin) return;
+      active=index;
+      pinned=pin;
+      opener=source;
+      const {a,share,color,members}=items[index];
+      const metric=(label,value,cls='')=>`<div><dt>${label}</dt><dd class="${cls}">${value}</dd></div>`;
+      const content=members
+        ? `<ul class="detail-members">${members.map(({a,share})=>`<li class="detail-member"><div><strong>${esc(a.name)}</strong><small>${esc(a.symbol)}${a.direction==='short'?' · 空头':''} · 敞口 ${usd.format(a.exposure)}</small></div><strong>${percent(share)}</strong></li>`).join('')}</ul>`
+        : `<dl class="detail-metrics">${metric('总敞口 · USD',usd.format(a.exposure))}${metric('浮动盈亏',signed(positionGain(a)),tone(positionGain(a)))}${metric('成本价',usd.format(a.cost))}${metric('现价',usd.format(a.price))}${metric('持仓数量',qty.format(a.quantity))}${metric('保证金',usd.format(a.margin))}</dl>`;
+      panel.innerHTML=`<header class="detail-header">${members?'':logo(a)}<div class="detail-heading"><h3 id="position-detail-title">${esc(a.name)}</h3><p>${members?`${members.length} 项资产 · 单项占比低于 2%`:`${esc(a.symbol)} · ${a.direction==='short'?'空头':'多头'}`}</p></div><button class="detail-close" type="button" aria-label="关闭仓位详情">×</button></header><dl class="detail-share"><dt>${members?'合计仓位占比':'仓位占比'}</dt><dd>${percent(share)}</dd></dl><div class="detail-track" aria-hidden="true" style="--share:${share*100}%;--asset-color:${color}"><span></span></div>${content}<p class="detail-note">${members?'各项占比均以全部持仓为基准。':'仓位占比 = 本项绝对敞口 ÷ 全部持仓绝对敞口。'}不含现金及独立融资保证金账户。</p>`;
+      panel.querySelector('.detail-close').addEventListener('click',()=>close(true));
+      panel.querySelectorAll('img').forEach(img=>{ img.addEventListener('error',()=>img.remove()); });
+      tiles.forEach((tile,i)=>tile.setAttribute('aria-expanded',String(i===index)));
+      picker.value=String(index);
+      panel.hidden=false;
+      panel.scrollTop=0;
+      position();
+      if (pin) panel.querySelector('.detail-close').focus({preventScroll:true});
+    }
+    const deferClose=()=>{
+      cancelDismiss();
+      if (!pinned) dismissTimer=setTimeout(()=>{
+        if (!panel.matches(':hover') && !tiles[active]?.matches(':hover')) close();
+      },220);
+    };
+    tiles.forEach((tile,index)=>{
+      tile.addEventListener('pointerenter',event=>{
+        if (!suppressHover && event.pointerType==='mouse' && matchMedia('(hover:hover)').matches) {
+          cancelOpen();
+          cancelDismiss();
+          openTimer=setTimeout(()=>open(index),450);
+        }
+      });
+      tile.addEventListener('pointerleave',()=>{ cancelOpen(); deferClose(); });
+      tile.addEventListener('pointerdown',event=>{
+        cancelOpen();
+        if (event.pointerType!=='touch' && event.pointerType!=='pen') return;
+        if (!event.isPrimary) return;
+        press={id:event.pointerId,x:event.clientX,y:event.clientY};
+        openTimer=setTimeout(()=>{ suppressPressClick=true; open(index,true); },500);
+      });
+      tile.addEventListener('pointermove',event=>{
+        if (press?.id===event.pointerId && Math.hypot(event.clientX-press.x,event.clientY-press.y)>10) cancelOpen();
+      });
+      tile.addEventListener('pointerup',cancelOpen);
+      tile.addEventListener('pointercancel',cancelOpen);
+      tile.addEventListener('contextmenu',event=>event.preventDefault());
+      tile.addEventListener('click',event=>{
+        // Native keyboard/assistive activation remains available; pointer input waits.
+        if (event.detail!==0 || event.pointerType==='touch' || event.pointerType==='pen') return;
+        active===index && pinned ? close(true) : open(index,true);
+      });
+    });
+    panel.addEventListener('pointerenter',cancelDismiss);
+    panel.addEventListener('pointerleave',deferClose);
+    panel.addEventListener('focusin',()=>{ pinned=true; cancelDismiss(); });
+    picker.addEventListener('change',()=>picker.value==='' ? close() : open(Number(picker.value),true,picker));
+    // Replaced on each render so retries never accumulate document listeners.
+    positionDetailEvents?.abort();
+    positionDetailEvents=new AbortController();
+    const options={signal:positionDetailEvents.signal};
+    document.addEventListener('pointermove',()=>{ suppressHover=false; },options);
+    document.addEventListener('pointerdown',event=>{
+      suppressPressClick=false;
+      if (!event.isPrimary) cancelOpen();
+      if (!panel.contains(event.target) && !event.target.closest('.treemap-tile') && event.target!==picker) close();
+    },options);
+    document.addEventListener('click',event=>{
+      // A long press can place the close button under the finger before release.
+      if (suppressPressClick) {
+        suppressPressClick=false;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    },{...options,capture:true});
+    document.addEventListener('keydown',event=>{
+      suppressPressClick=false;
+      if (event.key==='Escape') { cancelOpen(); if (!panel.hidden) { event.preventDefault(); close(true); } }
+    },options);
+    document.addEventListener('focusin',event=>{
+      if (suppressPressClick) return;
+      if (!panel.hidden && !panel.contains(event.target) && !tiles.includes(event.target) && event.target!==picker) close();
+    },options);
+    window.addEventListener('resize',position,options);
+    window.addEventListener('scroll',()=>{ cancelOpen(); position(); },{...options,passive:true});
+  }
+  let positionDetailEvents;
 
   function render(d) {
     validate(d);
@@ -365,6 +517,7 @@
   }
   const analysisTabs=[$('profit-tab'),$('position-tab')];
   function selectAnalysisTab(selected) {
+    closePositionDetail();
     analysisTabs.forEach(tab=>{
       const active=tab===selected;
       tab.setAttribute('aria-selected',String(active));
