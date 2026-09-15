@@ -42,7 +42,7 @@ CNN_HEADERS = {
     "Referer": "https://www.cnn.com/",
 }
 FNG_URL = "https://api.alternative.me/fng/"
-OKX_URL = "https://www.okx.com/api/v5/market/candles"
+OKX_TICKER_URL = "https://www.okx.com/api/v5/market/ticker"
 SPOT_SYMBOLS = frozenset({"BTC", "ETH", "BNB"})
 DEFAULT_FILE = Path(__file__).resolve().with_name("data.json")
 
@@ -185,31 +185,24 @@ def instrument_for(asset: dict) -> str:
     return instrument
 
 
-def fetch_close(client: HttpClient, instrument: str) -> float:
-    payload = client.get(OKX_URL, {"instId": instrument, "bar": "1D", "limit": 10})
+def fetch_price(client: HttpClient, instrument: str) -> float:
+    """返回 OKX 最新成交价，而非上一根已收盘的日线价格。"""
+    payload = client.get(OKX_TICKER_URL, {"instId": instrument})
     if str(payload.get("code")) != "0":
         raise DataError(f"OKX {payload.get('code')}: {str(payload.get('msg', '请求失败'))[:180]}")
     rows = payload.get("data")
-    if not isinstance(rows, list):
-        raise DataError("日线数据格式错误")
-    closed = []
-    for row in rows:
-        if not isinstance(row, list) or len(row) != 9 or str(row[8]) not in {"0", "1"}:
-            raise DataError("日线字段格式错误")
-        if str(row[8]) == "1":
-            opened = timestamp(row[0], milliseconds=True)
-            close = number(row[4], "日线收盘价", minimum=0)
-            if close <= 0:
-                raise DataError("日线收盘价必须大于零")
-            closed.append((opened, close))
-    if not closed:
-        raise DataError("没有已完结日线")
-    opened, close = max(closed)
-    closed_at = opened + timedelta(days=1)
-    now = datetime.now(timezone.utc)
-    if closed_at > now or now - closed_at > timedelta(days=7):
-        raise DataError("已完结日线时间无效或超过 7 天未更新")
-    return close
+    if not isinstance(rows, list) or len(rows) != 1 or not isinstance(rows[0], dict):
+        raise DataError("实时行情数据格式错误")
+    row = rows[0]
+    if row.get("instId") != instrument:
+        raise DataError("实时行情产品 ID 不匹配")
+    observed = timestamp(row.get("ts"), milliseconds=True)
+    if datetime.now(timezone.utc) - observed > timedelta(minutes=15):
+        raise DataError("实时行情超过 15 分钟未更新")
+    price = number(row.get("last"), "最新成交价", minimum=0)
+    if price <= 0:
+        raise DataError("最新成交价必须大于零")
+    return price
 
 
 def validate_document(data: dict) -> None:
@@ -262,7 +255,7 @@ def update_document(data: dict, client: HttpClient, days: int = 30) -> tuple[dic
                 continue
             instrument = instrument_for(asset)
             key = f"price.{instrument}"
-            jobs[key] = (fetch_close, instrument)
+            jobs[key] = (fetch_price, instrument)
             targets.setdefault(key, []).append(asset)
     report = {"status": "success", "succeeded": [], "failed": {}, "skipped": skipped,
               "skippedZeroExposure": skipped_zero_exposure}
