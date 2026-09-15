@@ -146,9 +146,6 @@
     .treemap-tile[aria-expanded="true"] .treemap-label { inset:3px; }
     .treemap-label { pointer-events:none; }
     .treemap-tile { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
-    .allocation-help { margin:0; color:var(--secondary); font-size:.8125rem; line-height:1.6; }
-    .allocation-picker { display:flex; align-items:center; flex-wrap:wrap; gap:12px; width:100%; font-size:.875rem; }
-    .allocation-picker select { flex:1; min-width:0; min-height:44px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface-solid); color:var(--text); font:inherit; }
     .position-detail { position:fixed; z-index:20; width:min(380px,calc(100vw - 24px)); max-height:calc(100dvh - 24px); overflow:auto; overscroll-behavior:contain; padding:20px; border:1px solid var(--line); border-radius:22px; background:var(--surface-solid); box-shadow:0 16px 56px #00000024,0 2px 8px #0000000d; }
     .detail-header { display:flex; align-items:center; gap:12px; }
     .detail-heading { flex:1; min-width:0; }
@@ -355,8 +352,6 @@
       <div class="allocation-layout">
         <div class="allocation-overview">
           <div class="allocation-treemap" role="group" aria-label="仓位树状图，区块面积表示绝对敞口占比。">${tiles}</div>
-          <p class="allocation-help">电脑端悬停片刻、手机端长按区块查看详情。区块面积按绝对敞口占比计算。</p>
-          <label class="allocation-picker" for="position-picker">查看资产<select id="position-picker"><option value="">选择资产或其他组合</option>${grouped.map((item,index)=>`<option value="${index}">${esc(item.a.name)} · ${percent(item.share)}</option>`).join('')}</select></label>
         </div>
       </div>
       <section id="position-detail" class="position-detail" role="dialog" aria-labelledby="position-detail-title" hidden></section>`;
@@ -365,7 +360,7 @@
   }
 
   function setupPositionDetails(items) {
-    const panel=$('position-detail'), picker=$('position-picker');
+    const panel=$('position-detail');
     const tiles=[...$('positionChart').querySelectorAll('.treemap-tile')];
     let active=null, pinned=false, dismissTimer, opener=null, suppressHover=false;
     let openTimer, press=null, suppressPressClick=false;
@@ -377,7 +372,6 @@
       if (panel.hidden) return;
       panel.hidden=true;
       tiles.forEach(tile=>tile.setAttribute('aria-expanded','false'));
-      picker.value='';
       active=null;
       pinned=false;
       suppressHover=true;
@@ -409,7 +403,6 @@
       panel.querySelector('.detail-close').addEventListener('click',()=>close(true));
       panel.querySelectorAll('img').forEach(img=>{ img.addEventListener('error',()=>img.remove()); });
       tiles.forEach((tile,i)=>tile.setAttribute('aria-expanded',String(i===index)));
-      picker.value=String(index);
       panel.hidden=false;
       panel.scrollTop=0;
       position();
@@ -452,7 +445,6 @@
     panel.addEventListener('pointerenter',cancelDismiss);
     panel.addEventListener('pointerleave',deferClose);
     panel.addEventListener('focusin',()=>{ pinned=true; cancelDismiss(); });
-    picker.addEventListener('change',()=>picker.value==='' ? close() : open(Number(picker.value),true,picker));
     // Replaced on each render so retries never accumulate document listeners.
     positionDetailEvents?.abort();
     positionDetailEvents=new AbortController();
@@ -461,7 +453,7 @@
     document.addEventListener('pointerdown',event=>{
       suppressPressClick=false;
       if (!event.isPrimary) cancelOpen();
-      if (!panel.contains(event.target) && !event.target.closest('.treemap-tile') && event.target!==picker) close();
+      if (!panel.contains(event.target) && !event.target.closest('.treemap-tile')) close();
     },options);
     document.addEventListener('click',event=>{
       // A long press can place the close button under the finger before release.
@@ -477,7 +469,7 @@
     },options);
     document.addEventListener('focusin',event=>{
       if (suppressPressClick) return;
-      if (!panel.hidden && !panel.contains(event.target) && !tiles.includes(event.target) && event.target!==picker) close();
+      if (!panel.hidden && !panel.contains(event.target) && !tiles.includes(event.target)) close();
     },options);
     window.addEventListener('resize',position,options);
     window.addEventListener('scroll',()=>{ cancelOpen(); position(); },{...options,passive:true});
