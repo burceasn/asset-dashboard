@@ -243,8 +243,8 @@
       if (!m || !finite(m.score) || m.score<0 || m.score>100 || !Array.isArray(m.history) || !m.history.every(v => finite(v) && v>=0 && v<=100)) throw Error('市场情绪数据无效');
     }
     if (!finite(d.liquidity.cash?.balance) || !finite(d.liquidity.margin?.balance) || !finite(d.liquidity.margin?.annualRate)) throw Error('现金或保证金数据无效');
-    if (!Object.values(d.holdings).every(Array.isArray)) throw Error('持仓分组格式无效');
-    for (const a of Object.values(d.holdings).flat()) {
+    if (!Array.isArray(d.holdings)) throw Error('持仓格式无效');
+    for (const a of d.holdings) {
       if (!a || !finite(a.exposure)) throw Error('持仓敞口无效');
       if (a.exposure === 0) continue;
       if (!['quantity','cost','price','margin'].every(k => finite(a[k]))) throw Error('持仓数值无效');
@@ -479,7 +479,7 @@
   function render(d) {
     validate(d);
     // One filtered collection feeds cards, counts and every portfolio calculation.
-    const holdings=Object.values(d.holdings).flat().filter(a => a.exposure !== 0);
+    const holdings=d.holdings.filter(a => a.exposure !== 0);
     $('sentimentGrid').innerHTML=['usStocks','crypto'].map(k=>sentiment(k,d.sentiment[k])).join('');
     const l=d.liquidity;
     $('liquidityGrid').innerHTML=`<article class="liquidity-card card">${assetHead(l.cash)}<dl class="liquidity-values"><div><dt>持有数量</dt><dd>${usd.format(l.cash.balance)}</dd></div></dl></article><article class="liquidity-card card">${assetHead(l.margin)}<dl class="liquidity-values"><div><dt>保证金余额</dt><dd>${usd.format(l.margin.balance)}</dd></div><div><dt>当前年利率</dt><dd>${(l.margin.annualRate*100).toFixed(2)}%</dd></div></dl></article>`;

@@ -3,63 +3,7 @@
     "name": "Bruce's Portfolio",
     "subtitle": "全局资产控制台",
     "currency": "USD",
-    "updatedAt": "2026-09-16T09:04:30+08:00",
-    "disclaimer": "示例数据仅用于前端界面检查",
-    "dataUpdate": {
-      "status": "success",
-      "succeeded": [
-        "price.BNB-USDT",
-        "price.BTC-USDT",
-        "price.COST-USDT-SWAP",
-        "price.CRCL-USDT-SWAP",
-        "price.GOOGL-USDT-SWAP",
-        "price.SPCX-USDT-SWAP",
-        "price.XIAOMI-USDT-SWAP",
-        "sentiment.crypto",
-        "sentiment.usStocks"
-      ],
-      "failed": {},
-      "skipped": [
-        "AAPL",
-        "ALIBABA",
-        "AVGO",
-        "BE",
-        "BRKB",
-        "MU",
-        "MRVL",
-        "QQQ",
-        "NVDA",
-        "PLTR",
-        "TENCENT",
-        "TSLA",
-        "TSM",
-        "ANTHROPIC",
-        "CXMT",
-        "OpenAI",
-        "ZHIPU",
-        "ETH"
-      ],
-      "skippedZeroExposure": [
-        "AAPL",
-        "ALIBABA",
-        "AVGO",
-        "BE",
-        "BRKB",
-        "MU",
-        "MRVL",
-        "QQQ",
-        "NVDA",
-        "PLTR",
-        "TENCENT",
-        "TSLA",
-        "TSM",
-        "ANTHROPIC",
-        "CXMT",
-        "OpenAI",
-        "ZHIPU",
-        "ETH"
-      ]
-    }
+    "updatedAt": "2026-09-16T09:04:30+08:00"
   },
   "sentiment": {
     "usStocks": {
@@ -220,8 +164,7 @@
       "logo": "asset/CASH-2.svg"
     }
   },
-  "holdings": {
-    "listedEquities": [
+  "holdings": [
       {
         "symbol": "AAPL",
         "direction": "long",
@@ -425,9 +368,7 @@
         "exposure": 8272.41,
         "margin": 1218.9,
         "color": "#FF6900"
-      }
-    ],
-    "privateCompanies": [
+      },
       {
         "symbol": "ANTHROPIC",
         "direction": "long",
@@ -487,9 +428,7 @@
         "exposure": 0,
         "margin": 6908.0,
         "color": "#0F62FE"
-      }
-    ],
-    "digitalAssets": [
+      },
       {
         "symbol": "BNB",
         "direction": "long",
@@ -526,6 +465,5 @@
         "margin": 27451.2,
         "color": "#627EEA"
       }
-    ]
-  }
+  ]
 }

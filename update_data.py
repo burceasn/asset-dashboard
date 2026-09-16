@@ -206,26 +206,25 @@ def fetch_price(client: HttpClient, instrument: str) -> float:
 
 
 def validate_document(data: dict) -> None:
-    if not isinstance(data, dict) or not all(isinstance(data.get(k), dict)
-                                            for k in ("dashboard", "sentiment", "holdings")):
-        raise DataError("data.json 缺少 dashboard、sentiment 或 holdings 对象")
+    if (not isinstance(data, dict) or not isinstance(data.get("dashboard"), dict)
+            or not isinstance(data.get("sentiment"), dict) or "holdings" not in data):
+        raise DataError("data.json 缺少 dashboard、sentiment 或 holdings")
     for key in ("usStocks", "crypto"):
         if not isinstance(data["sentiment"].get(key), dict):
             raise DataError(f"缺少 sentiment.{key}")
-    for group, assets in data["holdings"].items():
-        if not isinstance(assets, list):
-            raise DataError(f"持仓分组 {group} 必须为数组")
-        for asset in assets:
-            if not isinstance(asset, dict) or not isinstance(asset.get("symbol"), str) or not asset["symbol"]:
-                raise DataError(f"{group} 中存在无效持仓")
-            for key in ("price", "quantity", "cost", "exposure", "margin"):
-                if not isinstance(asset.get(key), (int, float)):
-                    raise DataError(f"{asset['symbol']}.{key} 必须为 JSON 数值")
-                number(asset[key], f"{asset['symbol']}.{key}")
-            if asset["exposure"] != 0 and asset["quantity"] == 0:
-                raise DataError(f"{asset['symbol']} 非零敞口缺少持仓数量")
-            if asset["exposure"] != 0:
-                instrument_for(asset)
+    if not isinstance(data["holdings"], list):
+        raise DataError("holdings 必须为数组")
+    for asset in data["holdings"]:
+        if not isinstance(asset, dict) or not isinstance(asset.get("symbol"), str) or not asset["symbol"]:
+            raise DataError("holdings 中存在无效持仓")
+        for key in ("price", "quantity", "cost", "exposure", "margin"):
+            if not isinstance(asset.get(key), (int, float)):
+                raise DataError(f"{asset['symbol']}.{key} 必须为 JSON 数值")
+            number(asset[key], f"{asset['symbol']}.{key}")
+        if asset["exposure"] != 0 and asset["quantity"] == 0:
+            raise DataError(f"{asset['symbol']} 非零敞口缺少持仓数量")
+        if asset["exposure"] != 0:
+            instrument_for(asset)
 
 
 def updated_exposure(asset: dict, price: float) -> float:
@@ -246,17 +245,16 @@ def update_document(data: dict, client: HttpClient, days: int = 30) -> tuple[dic
     targets = {}
     skipped = []
     skipped_zero_exposure = []
-    for group, assets in updated["holdings"].items():
-        for asset in assets:
-            if asset["exposure"] == 0:
-                skipped.append(asset["symbol"])
-                skipped_zero_exposure.append(asset["symbol"])
-                LOG.info("跳过零敞口资产 %s", asset["symbol"])
-                continue
-            instrument = instrument_for(asset)
-            key = f"price.{instrument}"
-            jobs[key] = (fetch_price, instrument)
-            targets.setdefault(key, []).append(asset)
+    for asset in updated["holdings"]:
+        if asset["exposure"] == 0:
+            skipped.append(asset["symbol"])
+            skipped_zero_exposure.append(asset["symbol"])
+            LOG.info("跳过零敞口资产 %s", asset["symbol"])
+            continue
+        instrument = instrument_for(asset)
+        key = f"price.{instrument}"
+        jobs[key] = (fetch_price, instrument)
+        targets.setdefault(key, []).append(asset)
     report = {"status": "success", "succeeded": [], "failed": {}, "skipped": skipped,
               "skippedZeroExposure": skipped_zero_exposure}
     with ThreadPoolExecutor(max_workers=4) as pool:
@@ -293,7 +291,6 @@ def update_document(data: dict, client: HttpClient, days: int = 30) -> tuple[dic
         report["status"] = "partial" if report["succeeded"] else "failed"
     if report["succeeded"]:
         updated["dashboard"]["updatedAt"] = datetime.now(SHANGHAI).isoformat(timespec="seconds")
-        updated["dashboard"]["dataUpdate"] = report
     validate_document(updated)
     return updated, report
 
