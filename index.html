@@ -343,9 +343,9 @@
     const tiles=weightedTreemap(grouped).map(({item,x,y,width,height},index)=>{
       const {a,share,color,members}=item;
       const label=members
-        ? `其他 · 仓位 ${percent(share)}：`+members.map(member=>`${member.a.name} (${member.a.symbol}${member.a.direction==='short'?' · 空头':''}) · ${percent(member.share)} · 敞口 ${usd.format(member.a.exposure)}`).join('；')
-        : `${a.name} (${a.symbol}${a.direction==='short'?' · 空头':''}) · 仓位 ${percent(share)} · 敞口 ${usd.format(a.exposure)}`;
-      return `<button type="button" class="treemap-tile ${members?'other':share>=0.10?'large':'medium'}" data-position="${index}" aria-label="${esc(label)}，查看详情" aria-expanded="false" aria-controls="position-detail" aria-haspopup="dialog" style="left:${x}%;top:${y}%;width:${width}%;height:${height}%;--asset-color:${color}"><span class="treemap-label" aria-hidden="true">${members?'':logo(a)}<span class="treemap-name">${esc(a.name)}${a.direction==='short'?' · 空头':''}</span><span class="treemap-percent">${percent(share)}</span></span></button>`;
+        ? `其他 · 仓位 ${percent(share)}：`+members.map(member=>`${member.a.name} (${member.a.symbol}) · ${percent(member.share)} · 敞口 ${usd.format(member.a.exposure)}`).join('；')
+        : `${a.name} (${a.symbol}) · 仓位 ${percent(share)} · 敞口 ${usd.format(a.exposure)}`;
+      return `<button type="button" class="treemap-tile ${members?'other':share>=0.10?'large':'medium'}" data-position="${index}" aria-label="${esc(label)}，查看详情" aria-expanded="false" aria-controls="position-detail" aria-haspopup="dialog" style="left:${x}%;top:${y}%;width:${width}%;height:${height}%;--asset-color:${color}"><span class="treemap-label" aria-hidden="true">${members?'':logo(a)}<span class="treemap-name">${esc(a.name)}</span><span class="treemap-percent">${percent(share)}</span></span></button>`;
     }).join('');
     $('positionChart').innerHTML=`
       <div class="allocation-summary"><dl><dt>${hasShort?'总绝对敞口':'持仓总敞口'} · USD</dt><dd>${usd.format(total)}</dd></dl><p class="allocation-count">${assets.length} 项资产</p></div>
@@ -399,7 +399,7 @@
       const content=members
         ? `<ul class="detail-members">${members.map(({a,share})=>`<li class="detail-member"><div><strong>${esc(a.name)}</strong><small>${esc(a.symbol)}${a.direction==='short'?' · 空头':''} · 敞口 ${usd.format(a.exposure)}</small></div><strong>${percent(share)}</strong></li>`).join('')}</ul>`
         : `<dl class="detail-metrics">${metric('总敞口 · USD',usd.format(a.exposure))}${metric('浮动盈亏',signed(positionGain(a)),tone(positionGain(a)))}${metric('成本价',usd.format(a.cost))}${metric('现价',usd.format(a.price))}${metric('持仓数量',qty.format(a.quantity))}${metric('保证金',usd.format(a.margin))}</dl>`;
-      panel.innerHTML=`<header class="detail-header">${members?'':logo(a)}<div class="detail-heading"><h3 id="position-detail-title">${esc(a.name)}</h3><p>${members?`${members.length} 项资产 · 单项占比低于 2%`:`${esc(a.symbol)} · ${a.direction==='short'?'空头':'多头'}`}</p></div><button class="detail-close" type="button" aria-label="关闭仓位详情">×</button></header><dl class="detail-share"><dt>${members?'合计仓位占比':'仓位占比'}</dt><dd>${percent(share)}</dd></dl><div class="detail-track" aria-hidden="true" style="--share:${share*100}%;--asset-color:${color}"><span></span></div>${content}<p class="detail-note">${members?'各项占比均以全部持仓为基准。':'仓位占比 = 本项绝对敞口 ÷ 全部持仓绝对敞口。'}不含现金及独立融资保证金账户。</p>`;
+      panel.innerHTML=`<header class="detail-header">${members?'':logo(a)}<div class="detail-heading"><h3 id="position-detail-title">${esc(a.name)}</h3><p>${members?`${members.length} 项资产 · 单项占比低于 2%`:`${esc(a.symbol)} · ${a.direction==='short'?'空头':'多头'}`}</p></div><button class="detail-close" type="button" aria-label="关闭仓位详情">×</button></header><dl class="detail-share"><dt>${members?'合计仓位占比':'仓位占比'}</dt><dd>${percent(share)}</dd></dl><div class="detail-track" aria-hidden="true" style="--share:${share*100}%;--asset-color:${color}"><span></span></div>${content}${members?'<p class="detail-note">各项占比均以全部持仓为基准。不含现金及独立融资保证金账户。</p>':''}`;
       panel.querySelector('.detail-close').addEventListener('click',()=>close(true));
       panel.querySelectorAll('img').forEach(img=>{ img.addEventListener('error',()=>img.remove()); });
       tiles.forEach((tile,i)=>tile.setAttribute('aria-expanded',String(i===index)));
