@@ -93,7 +93,7 @@
     .liquidity-values dd { font-size:26px; letter-spacing:-.035em; }
     .holding-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
     .holding-card { position:relative; display:flex; flex-direction:column; }
-    .short-badge { flex:0 0 42px; width:42px; height:42px; margin-left:auto; display:grid; place-items:center; color:var(--red); font-size:42px; line-height:1; font-weight:700; }
+    .short-badge { flex:0 0 42px; width:42px; height:42px; display:grid; place-items:center; color:var(--red); font-size:42px; line-height:1; font-weight:700; }
     .exposure { margin:24px 0 20px; }
     .exposure dd { font-size:27px; letter-spacing:-.04em; }
     .metrics { margin:0 0 20px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 12px; }
@@ -108,6 +108,28 @@
     @media(max-width:1150px) { .holding-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .sentiment-body { gap:16px; grid-template-columns:124px minmax(0,1fr); } .gauge { width:124px; height:124px; } }
     @media(max-width:900px) { .shell { width:calc(100% - 32px); padding-top:24px; } .holding-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .sentiment-grid { grid-template-columns:1fr; } }
     @media(max-width:560px) { .shell { width:calc(100% - 24px); padding-top:20px; } .topbar { align-items:flex-start; gap:12px; } .updated { max-width:135px; font-size:11px; line-height:1.6; } .brand-copy span { display:none; } .holding-grid,.liquidity-grid { grid-template-columns:1fr; } .sentiment,.holding-card,.liquidity-card { padding:20px; } .sentiment-body { grid-template-columns:110px minmax(0,1fr); gap:16px; } .gauge { width:110px; height:110px; } .gauge-center strong { font-size:32px; } .range-labels { font-size:12px; } .range-labels span:nth-child(2) { display:none; } .footer { flex-direction:column; gap:4px; } .liquidity-values dd { font-size:24px; } }
+    /* ---- 全部持仓：悬停（触屏长按）展开侧面板编辑，写回 data.json ---- */
+    .section-tools { display:flex; align-items:center; gap:10px; }
+    .pill-toggle { border:0; padding:7px 12px; border-radius:9px; background:var(--bg); color:var(--secondary); font-size:13px; }
+    .pill-toggle:hover,.pill-toggle[aria-pressed="true"] { background:#edf3fc; color:var(--blue); }
+    .asset-tools { margin-left:auto; display:flex; align-items:center; gap:8px; }
+    .card-edit-btn { flex:0 0 32px; width:32px; height:32px; padding:0; border:0; border-radius:50%; background:var(--bg); color:var(--secondary); display:grid; place-items:center; opacity:0; transition:opacity .18s ease; }
+    .card-edit-btn:hover { color:var(--blue); }
+    .card-edit-btn svg { width:15px; height:15px; }
+    .holding-card:hover .card-edit-btn,.card-edit-btn:focus-visible,.holding-card.is-open .card-edit-btn { opacity:1; }
+    .holding-card.is-open { box-shadow:var(--shadow),inset 0 0 0 2px var(--blue); }
+    .edit-fields { gap:18px 16px; }
+    .field { display:block; min-width:0; }
+    .field>span { display:block; color:var(--secondary); font-size:13px; }
+    .field input,.field select { width:100%; margin-top:6px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--surface-solid); color:var(--text); font:inherit; font-size:15px; font-weight:600; letter-spacing:-.01em; }
+    .field select { appearance:none; -webkit-appearance:none; padding-right:32px; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.8 6 6.4 11 1.8' fill='none' stroke='%238e8e93' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 11px center; background-size:12px 8px; }
+    .field input:focus,.field select:focus { outline:3px solid #007aff66; outline-offset:2px; border-color:var(--blue); }
+    .edit-pnl { margin:18px 0 0; }
+    .expand-actions { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:18px; }
+    .expand-actions button { padding:9px 16px; border-radius:10px; font-size:14px; }
+    .expand-status { flex-basis:100%; margin:0; color:var(--secondary); font-size:12px; line-height:1.6; }
+    @media(hover:none) { .card-edit-btn { opacity:1; } .holding-card { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; } .card-editor input,.card-editor select { -webkit-user-select:text; user-select:text; } }
+    @media(max-width:420px) { .edit-fields { grid-template-columns:1fr; } }
     @media(prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none!important; animation:none!important; } }
 
     @media(max-width:560px) { .topbar { flex-wrap:wrap; align-items:center; } .updated { max-width:none; } h1 { font-size:22px; } }
@@ -221,7 +243,7 @@
         <div class="analysis-panel" id="profit-panel" role="tabpanel" aria-labelledby="profit-tab" tabindex="0"><div id="profitChart"></div></div>
         <div class="analysis-panel" id="position-panel" role="tabpanel" aria-labelledby="position-tab" tabindex="0" hidden><div id="positionChart"></div></div>
       </section>
-      <section aria-labelledby="holdings-title"><div class="section-head"><h2 id="holdings-title">全部持仓</h2><span id="holdingCount"></span></div><div class="liquidity-grid" id="liquidityGrid"></div><div class="holding-grid" id="holdingGrid"></div></section>
+      <section aria-labelledby="holdings-title"><div class="section-head"><h2 id="holdings-title">全部持仓</h2><div class="section-tools"><span id="holdingCount"></span><button id="zeroToggle" class="pill-toggle" type="button" aria-pressed="false" hidden></button></div></div><div class="liquidity-grid" id="liquidityGrid"></div><div class="holding-grid" id="holdingGrid"></div></section>
     </div>
     <noscript><p class="state card">请启用 JavaScript 以查看资产看板。</p></noscript>
   </main>
@@ -257,7 +279,8 @@
     const glyph = a.symbol === 'USD' ? '$' : a.symbol === 'MARGIN' ? '%' : String(a.symbol || '?').slice(0,3);
     return `<span class="logo" aria-hidden="true"><span>${esc(glyph)}</span>${path ? `<img src="${esc(path)}" alt="" loading="lazy">` : ''}</span>`;
   }
-  function assetHead(a,badge='') { return `<header class="asset-head">${logo(a)}<div class="asset-copy"><strong>${esc(a.name)}</strong><span>${esc(a.symbol)}</span></div>${badge}</header>`; }
+  function assetHead(a,tools='') { return `<header class="asset-head">${logo(a)}<div class="asset-copy"><strong>${esc(a.name)}</strong><span>${esc(a.symbol)}</span></div><div class="asset-tools">${tools}</div></header>`; }
+  const editButton = label => `<button type="button" class="card-edit-btn" aria-label="${esc(label)}" aria-expanded="false">${PENCIL_ICON}</button>`;
   function zone(score) { return score<=24 ? ['极端恐惧','#d70015'] : score<=44 ? ['恐惧','#c93400'] : score<=55 ? ['中性','#a07800'] : score<=74 ? ['贪婪','#248a3d'] : ['极端贪婪','#167337']; }
   function spark(history,color,id) {
     if (!history.length) return '<p class="score-note">暂无历史数据</p>';
@@ -274,7 +297,8 @@
   function holding(a) {
     const gain=positionGain(a);
     const shortBadge=a.direction==='short' ? '<span class="short-badge" aria-label="做空（short）" title="做空（short）">S</span>' : '';
-    return `<article class="holding-card card" data-symbol="${esc(a.symbol)}">${assetHead(a,shortBadge)}<dl class="exposure"><dt>总敞口</dt><dd>${usd.format(a.exposure)}</dd></dl><dl class="metrics"><div><dt>持仓数量 (股)</dt><dd>${qty.format(a.quantity)}</dd></div><div><dt>成本价</dt><dd>${usd.format(a.cost)}</dd></div><div><dt>现价</dt><dd>${usd.format(a.price)}</dd></div><div><dt>保证金</dt><dd>${usd.format(a.margin)}</dd></div></dl><footer class="pnl"><span>浮动盈亏</span><strong class="${tone(gain)}">${signed(gain)}</strong></footer></article>`;
+    const tools=shortBadge+editButton(`编辑 ${a.name} 的持仓数据`);
+    return `<article class="holding-card card" data-symbol="${esc(a.symbol)}">${assetHead(a,tools)}<dl class="exposure"><dt>总敞口</dt><dd>${usd.format(a.exposure)}</dd></dl><dl class="metrics"><div><dt>持仓数量 (股)</dt><dd>${qty.format(a.quantity)}</dd></div><div><dt>成本价</dt><dd>${usd.format(a.cost)}</dd></div><div><dt>现价</dt><dd>${usd.format(a.price)}</dd></div><div><dt>保证金</dt><dd>${usd.format(a.margin)}</dd></div></dl><footer class="pnl"><span>浮动盈亏</span><strong class="${tone(gain)}">${signed(gain)}</strong></footer></article>`;
   }
 
   const positionGain = a => Math.round((a.direction==='short' ? a.cost-a.price : a.price-a.cost)*Math.abs(a.quantity)*100)/100;
@@ -476,20 +500,269 @@
   }
   let positionDetailEvents;
 
-  function render(d) {
+  // ---- 全部持仓：悬停（触屏长按）在卡片侧面展开编辑面板，保存同步到 data.json ----
+  const PENCIL_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.83 2.83 0 0 0-4-4L4.5 16.5 4 20Z"/><path d="m14 7 3 3"/></svg>';
+  const NONNEGATIVE=new Set(['cost','price','margin']);  // 数量与敞口可为负表示空头，其余金额不允许为负。
+  const clock=()=>new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());
+  let currentData=null, writable=null, showZeroExposure=false, cardEditor=null, cardEditorEvents;
+
+  // 仅开放这几个仓位字段的编辑，其余字段只读。
+  const editFields=a=>[
+    {key:'exposure',label:'总敞口',value:a.exposure},
+    {key:'quantity',label:'持仓数量 (股)',value:a.quantity},
+    {key:'cost',label:'成本价',value:a.cost},
+    {key:'price',label:'现价',value:a.price},
+    {key:'margin',label:'保证金',value:a.margin},
+    {key:'direction',label:'多空方向',value:a.direction,select:[['long','多头 long'],['short','空头 short']]}
+  ];
+  function fieldMarkup(f) {
+    const value=f.value ?? '';
+    const control=f.select
+      ? `<select data-field="${f.key}">${f.select.map(([v,l])=>`<option value="${esc(v)}"${String(value)===v?' selected':''}>${esc(l)}</option>`).join('')}</select>`
+      : `<input data-field="${f.key}" type="text" inputmode="decimal" value="${esc(value)}" autocomplete="off" spellcheck="false">`;
+    return `<label class="field"><span>${esc(f.label)}</span>${control}</label>`;
+  }
+  function editorMarkup(a,fields) {
+    return `<section class="position-detail card-editor" role="dialog" aria-labelledby="card-edit-title"><header class="detail-header">${logo(a)}<div class="detail-heading"><h3 id="card-edit-title">${esc(a.name)}</h3><p>${esc(a.symbol)} · ${a.direction==='short'?'空头':'多头'}</p></div><button type="button" class="detail-close" data-act="close" aria-label="关闭编辑">×</button></header><div class="detail-metrics edit-fields">${fields.map(fieldMarkup).join('')}</div><footer class="pnl edit-pnl"><span>浮动盈亏</span><strong></strong></footer><div class="expand-actions"><button type="button" data-act="reset">撤销更改</button><button type="button" data-act="save">保存到 data.json</button>${writable===false?'<button type="button" data-act="export">导出 data.json</button>':''}<p class="expand-status" role="status"></p></div></section>`;
+  }
+  function formValues(panel) {
+    const values={};
+    panel.querySelectorAll('[data-field]').forEach(el=>{ values[el.dataset.field]=el.value; });
+    return values;
+  }
+  function formNumber(values,key,label) {
+    const raw=String(values[key]??'').trim();
+    const value=Number(raw);
+    if (!raw || !Number.isFinite(value)) throw Error(`${label} 必须是有效数字`);
+    if (NONNEGATIVE.has(key) && value<0) throw Error(`${label} 不能为负数`);
+    return value;
+  }
+  function formGain(values) {
+    const n=key=>Number(String(values[key]??'').trim());
+    const gain=(n('price')-n('cost'))*Math.abs(n('quantity'));
+    return Number.isFinite(gain) ? Math.round((values.direction==='short' ? -gain : gain)*100)/100 : null;
+  }
+  function updatePnl(panel,values) {
+    const strong=panel.querySelector('.edit-pnl strong');
+    if (!strong) return;
+    const gain=formGain(values);
+    strong.className=gain===null ? 'neutral' : tone(gain);
+    strong.textContent=gain===null ? '—' : signed(gain);
+  }
+  function setStatus(el,message,toneClass='') {
+    if (el) { el.className='expand-status'+(toneClass?' '+toneClass:''); el.textContent=message; }
+  }
+  function buildPatch(key,values) {
+    const patch={
+      direction:values.direction==='short' ? 'short' : 'long',
+      quantity:formNumber(values,'quantity','持仓数量'),
+      cost:formNumber(values,'cost','成本价'),
+      price:formNumber(values,'price','现价'),
+      exposure:formNumber(values,'exposure','总敞口'),
+      margin:formNumber(values,'margin','保证金')
+    };
+    if (patch.exposure!==0 && patch.quantity===0) throw Error('非零敞口需要非零持仓数量');
+    return {target:{type:'holding',symbol:key.symbol},patch};
+  }
+  function exportData() {
+    const blob=new Blob([JSON.stringify(currentData,null,2)+'\n'],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url; link.download='data.json';
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  function applyOffline(key,patch) {
+    const data=JSON.parse(JSON.stringify(currentData));
+    const record=data.holdings.find(a=>a.symbol===key.symbol);
+    if (!record) return;
+    Object.assign(record,patch);
+    render(data,{key,tone:'negative',status:'当前环境没有写入接口（静态托管），修改已在页面生效；点击「导出 data.json」获取更新后的文件。'});
+  }
+  async function saveEdits(key,panel) {
+    const status=panel.querySelector('.expand-status');
+    let target,patch;
+    try { ({target,patch}=buildPatch(key,formValues(panel))); }
+    catch (error) { setStatus(status,error.message,'negative'); return; }
+    if (writable===false) { applyOffline(key,patch); return; }
+    setStatus(status,'正在写入 data.json…');
+    let response;
+    try {
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),10000);
+      try {
+        response=await fetch('./api/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({target,patch}),signal:controller.signal});
+      } finally { clearTimeout(timeout); }
+    } catch (error) {
+      if (writable!==true && error instanceof TypeError) { writable=false; applyOffline(key,patch); return; }
+      setStatus(status,`保存失败：${error.message}`,'negative');
+      return;
+    }
+    if (response.status===404 || response.status===405) { writable=false; applyOffline(key,patch); return; }
+    const result=await response.json().catch(()=>null);
+    if (!response.ok || !result?.ok || !result.data) { setStatus(status,`保存失败：${result?.error || 'HTTP '+response.status}`,'negative'); return; }
+    writable=true;
+    render(result.data,{key,tone:'positive',status:`已写入 data.json · ${clock()}`});
+  }
+  function setupCardEditors() {
+    cardEditor?.close();
+    cardEditorEvents?.abort();
+    cardEditorEvents=new AbortController();
+    const options={signal:cardEditorEvents.signal};
+    const cards=[...document.querySelectorAll('.holding-card[data-symbol]')];
+    const state={card:null,panel:null,key:null,pinned:false,openTimer:null,dismissTimer:null,press:null,suppressHover:false,suppressPressClick:false};
+    const keyOf=card=>({type:'holding',symbol:card.dataset.symbol});
+    const sameKey=(a,b)=>!!a && !!b && a.symbol===b.symbol;
+    const findCard=key=>cards.find(card=>card.dataset.symbol===key.symbol);
+    const recordOf=key=>(currentData?.holdings||[]).find(a=>a.symbol===key.symbol);
+    const cancelOpen=()=>{ clearTimeout(state.openTimer); state.press=null; };
+    const cancelDismiss=()=>clearTimeout(state.dismissTimer);
+    function close(restoreFocus=false) {
+      cancelOpen(); cancelDismiss();
+      const {card,panel}=state;
+      if (!panel) return;
+      panel.remove();
+      card?.classList.remove('is-open');
+      card?.querySelector('.card-edit-btn')?.setAttribute('aria-expanded','false');
+      state.card=state.panel=null; state.key=null; state.pinned=false;
+      state.suppressHover=true;
+      if (restoreFocus && card?.isConnected) card.querySelector('.card-edit-btn')?.focus({preventScroll:true});
+    }
+    const deferClose=()=>{
+      cancelDismiss();
+      if (state.pinned) return;
+      state.dismissTimer=setTimeout(()=>{
+        if (!state.panel?.matches(':hover') && !state.card?.matches(':hover')) close();
+      },220);
+    };
+    function position() {
+      const {panel,card}=state;
+      if (!panel || matchMedia('(max-width:560px)').matches) return;
+      const rect=card.getBoundingClientRect();
+      const width=panel.offsetWidth, height=panel.offsetHeight;
+      // 与总体仓位详情一致：优先放在卡片右侧，空间不足改放左侧，再夹回可视视口。
+      const left=rect.right+12+width<=innerWidth-12 ? rect.right+12 : rect.left-width-12;
+      panel.style.left=Math.max(12,Math.min(left,innerWidth-width-12))+'px';
+      panel.style.top=Math.max(12,Math.min(rect.top,innerHeight-height-12))+'px';
+    }
+    function open(key,opts={}) {
+      cancelOpen(); cancelDismiss();
+      if (state.panel && sameKey(state.key,key)) {
+        if (opts.pin) state.pinned=true;
+        if (opts.status) setStatus(state.panel.querySelector('.expand-status'),opts.status,opts.tone);
+        return;
+      }
+      if (state.panel && state.pinned && !opts.pin) return;
+      close();
+      const card=findCard(key), a=recordOf(key);
+      if (!card || !a) return;
+      const fields=editFields(a);
+      document.body.insertAdjacentHTML('beforeend',editorMarkup(a,fields));
+      const panel=document.body.lastElementChild;
+      state.card=card; state.panel=panel; state.key=key; state.pinned=!!opts.pin;
+      card.classList.add('is-open');
+      card.querySelector('.card-edit-btn')?.setAttribute('aria-expanded','true');
+      updatePnl(panel,formValues(panel));
+      setStatus(panel.querySelector('.expand-status'),opts.status||'',opts.tone||'');
+      panel.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>img.remove()));
+      panel.addEventListener('pointerenter',cancelDismiss);
+      panel.addEventListener('pointerleave',deferClose);
+      panel.addEventListener('pointerdown',()=>{ state.pinned=true; cancelDismiss(); });
+      panel.addEventListener('focusin',()=>{ state.pinned=true; cancelDismiss(); });
+      panel.addEventListener('input',event=>{ if (event.target.closest('[data-field]')) updatePnl(panel,formValues(panel)); });
+      panel.addEventListener('click',event=>{
+        const button=event.target.closest('[data-act]');
+        if (!button) return;
+        const act=button.dataset.act;
+        if (act==='close') close(true);
+        else if (act==='reset') {
+          fields.forEach(f=>{ const el=panel.querySelector(`[data-field="${f.key}"]`); if (el) el.value=f.value ?? ''; });
+          panel.querySelectorAll('[data-field]').forEach(el=>el.dispatchEvent(new Event('input',{bubbles:true})));
+          setStatus(panel.querySelector('.expand-status'),'已恢复为 data.json 中的当前数值。');
+        }
+        else if (act==='save') saveEdits(key,panel);
+        else if (act==='export') exportData();
+      });
+      position();
+      if (opts.focus) panel.querySelector('[data-field]')?.focus({preventScroll:true});
+    }
+    cards.forEach(card=>{
+      const key=keyOf(card);
+      card.addEventListener('pointerenter',event=>{
+        if (state.suppressHover || event.pointerType!=='mouse' || !matchMedia('(hover:hover)').matches) return;
+        cancelOpen(); cancelDismiss();
+        state.openTimer=setTimeout(()=>open(key),450);
+      });
+      card.addEventListener('pointerleave',deferClose);
+      card.addEventListener('pointerdown',event=>{
+        cancelOpen();
+        state.suppressPressClick=false;
+        if (event.pointerType!=='touch' && event.pointerType!=='pen') return;
+        if (!event.isPrimary) return;
+        state.press={id:event.pointerId,x:event.clientX,y:event.clientY};
+        state.openTimer=setTimeout(()=>{ state.suppressPressClick=true; open(key,{pin:true}); },500);
+      });
+      card.addEventListener('pointermove',event=>{
+        if (state.press?.id===event.pointerId && Math.hypot(event.clientX-state.press.x,event.clientY-state.press.y)>10) cancelOpen();
+      });
+      card.addEventListener('pointerup',cancelOpen);
+      card.addEventListener('pointercancel',cancelOpen);
+      card.addEventListener('contextmenu',event=>event.preventDefault());
+      card.addEventListener('click',event=>{
+        if (!event.target.closest('.card-edit-btn')) return;
+        if (state.suppressPressClick) return;
+        sameKey(state.key,key) && state.pinned ? close(true) : open(key,{pin:true,focus:true});
+      });
+      card.addEventListener('focusin',cancelDismiss);
+    });
+    document.addEventListener('pointermove',()=>{ state.suppressHover=false; },options);
+    document.addEventListener('pointerdown',event=>{
+      state.suppressPressClick=false;
+      if (!event.isPrimary) cancelOpen();
+      if (state.panel && !state.panel.contains(event.target) && !event.target.closest('.holding-card')) close();
+    },options);
+    document.addEventListener('click',event=>{
+      // 长按展开后松开会补发一次 click，吞掉以免误触卡片上的按钮。
+      if (state.suppressPressClick) {
+        state.suppressPressClick=false;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    },{...options,capture:true});
+    document.addEventListener('keydown',event=>{
+      if (event.key==='Escape' && state.panel) { event.preventDefault(); close(true); }
+    },options);
+    document.addEventListener('focusin',event=>{
+      if (state.panel && !state.panel.contains(event.target) && !event.target.closest('.holding-card')) close();
+    },options);
+    window.addEventListener('resize',position,options);
+    window.addEventListener('scroll',()=>{ cancelOpen(); position(); },{...options,passive:true});
+    cardEditor={open,close};
+  }
+
+  function render(d,reopen) {
     validate(d);
+    currentData=d;
     // One filtered collection feeds cards, counts and every portfolio calculation.
-    const holdings=d.holdings.filter(a => a.exposure !== 0);
+    const active=d.holdings.filter(a => a.exposure !== 0);
+    const zeroCount=d.holdings.length-active.length;
+    if (!zeroCount) showZeroExposure=false;
+    const holdings=showZeroExposure ? [...d.holdings] : active;
     $('sentimentGrid').innerHTML=['usStocks','crypto'].map(k=>sentiment(k,d.sentiment[k])).join('');
     const l=d.liquidity;
     $('liquidityGrid').innerHTML=`<article class="liquidity-card card">${assetHead(l.cash)}<dl class="liquidity-values"><div><dt>持有数量</dt><dd>${usd.format(l.cash.balance)}</dd></div></dl></article><article class="liquidity-card card">${assetHead(l.margin)}<dl class="liquidity-values"><div><dt>保证金余额</dt><dd>${usd.format(l.margin.balance)}</dd></div><div><dt>当前年利率</dt><dd>${(l.margin.annualRate*100).toFixed(2)}%</dd></div></dl></article>`;
     $('holdingGrid').innerHTML=holdings.map(holding).join('') || '<p class="state card">暂无持仓</p>';
-    renderPortfolioCharts(holdings);
+    renderPortfolioCharts(active);
     document.querySelectorAll('.logo img').forEach(img=>{ img.addEventListener('error',()=>img.remove()); if (img.complete && !img.naturalWidth) img.remove(); });
     $('brandName').textContent=d.dashboard.name;
     const updatedParts=Object.fromEntries(new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(d.dashboard.updatedAt)).map(part=>[part.type,part.value]));
     $('updatedAt').textContent=`上次更新: ${updatedParts.year}/${updatedParts.month}/${updatedParts.day} ${updatedParts.hour}:${updatedParts.minute}`;
     $('holdingCount').textContent=holdings.length+' 项持仓';
+    $('zeroToggle').hidden=zeroCount===0;
+    $('zeroToggle').textContent=(showZeroExposure?'隐藏':'显示')+`零敞口持仓 (${zeroCount})`;
+    $('zeroToggle').setAttribute('aria-pressed',String(showZeroExposure));
+    setupCardEditors();
+    if (reopen) cardEditor?.open(reopen.key,{pin:true,status:reopen.status,tone:reopen.tone});
     $('state').hidden=true; $('content').hidden=false;
   }
   async function load() {
@@ -532,6 +805,7 @@
     });
   });
   $('retry').addEventListener('click',load);
+  $('zeroToggle').addEventListener('click',()=>{ showZeroExposure=!showZeroExposure; render(currentData); });
   load();
 })();
 </script>
