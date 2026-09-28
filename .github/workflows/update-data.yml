@@ -2,9 +2,11 @@ name: Update dashboard data
 
 on:
   schedule:
-    # 每周一至周五，台北时间 07:00；不排除节假日。
-    - cron: '0 7 * * 1-5'
-      timezone: Asia/Taipei
+    # GitHub Actions 的 cron 以 UTC 计算；不排除台北节假日。
+    # 周一至周五 05:30 Asia/Taipei = 前一日 21:30 UTC。
+    - cron: '30 21 * * 0-4'
+    # 周一至周五 15:30 Asia/Taipei = 当日 07:30 UTC。
+    - cron: '30 7 * * 1-5'
   workflow_dispatch:
 
 permissions:
