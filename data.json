@@ -3,13 +3,13 @@
     "name": "Bruce's Portfolio",
     "subtitle": "全局资产控制台",
     "currency": "USD",
-    "updatedAt": "2026-09-29T22:15:22+08:00"
+    "updatedAt": "2026-09-30T08:36:26+08:00"
   },
   "sentiment": {
     "usStocks": {
       "name": "美股",
       "source": "CNN Fear & Greed",
-      "score": 33,
+      "score": 32,
       "status": "恐惧",
       "history": [
         55,
@@ -41,7 +41,7 @@
         36,
         37,
         34,
-        33
+        32
       ],
       "historyDates": [
         "2026-08-18",
@@ -75,15 +75,14 @@
         "2026-09-28",
         "2026-09-29"
       ],
-      "observedAt": "2026-09-29T14:13:14+00:00"
+      "observedAt": "2026-09-29T23:59:54+00:00"
     },
     "crypto": {
       "name": "加密货币",
       "source": "Alternative.me Fear & Greed",
-      "score": 73,
+      "score": 71,
       "status": "贪婪",
       "history": [
-        62,
         69,
         63,
         65,
@@ -112,10 +111,10 @@
         74,
         70,
         74,
-        73
+        73,
+        71
       ],
       "historyDates": [
-        "2026-08-31",
         "2026-09-01",
         "2026-09-02",
         "2026-09-03",
@@ -144,9 +143,10 @@
         "2026-09-26",
         "2026-09-27",
         "2026-09-28",
-        "2026-09-29"
+        "2026-09-29",
+        "2026-09-30"
       ],
-      "observedAt": "2026-09-29T00:00:00+00:00"
+      "observedAt": "2026-09-30T00:00:00+00:00"
     }
   },
   "liquidity": {
@@ -232,8 +232,8 @@
       "logo": "asset/COST.svg",
       "quantity": 3.83,
       "cost": 912.3,
-      "price": 920.5,
-      "exposure": 3525.52,
+      "price": 923.97,
+      "exposure": 3538.81,
       "margin": 500,
       "color": "#E31837"
     },
@@ -244,8 +244,8 @@
       "logo": "asset/CRCL.svg",
       "quantity": 38.1,
       "cost": 93.9,
-      "price": 85.32,
-      "exposure": 3250.69,
+      "price": 84.04,
+      "exposure": 3201.92,
       "margin": 394,
       "color": "#0B53BF"
     },
@@ -256,8 +256,8 @@
       "logo": "asset/GOOGL.svg",
       "quantity": 27.95,
       "cost": 358,
-      "price": 340.02,
-      "exposure": 9503.56,
+      "price": 341.65,
+      "exposure": 9549.12,
       "margin": 1768,
       "color": "#4285F4"
     },
@@ -364,8 +364,8 @@
       "logo": "asset/XIAOMI.svg",
       "quantity": 396.54,
       "cost": 27.5,
-      "price": 25.32,
-      "exposure": 10040.39,
+      "price": 25.38,
+      "exposure": 10064.19,
       "margin": 1218.9,
       "color": "#FF6900"
     },
@@ -412,8 +412,8 @@
       "logo": "asset/SPCX.svg",
       "quantity": 45.85,
       "cost": 144.8,
-      "price": 145.89,
-      "exposure": 6689.06,
+      "price": 149.61,
+      "exposure": 6859.62,
       "margin": 941.5,
       "color": "#005288"
     },
@@ -436,8 +436,8 @@
       "logo": "asset/BNB.svg",
       "quantity": 0.137,
       "cost": 733,
-      "price": 762.1,
-      "exposure": 104.41,
+      "price": 760.3,
+      "exposure": 104.16,
       "margin": 98.7,
       "color": "#F3BA2F"
     },
@@ -448,8 +448,8 @@
       "logo": "asset/BTC.svg",
       "quantity": 0.0644,
       "cost": 71000,
-      "price": 83936.1,
-      "exposure": 5405.48,
+      "price": 83571.7,
+      "exposure": 5382.02,
       "margin": 5000,
       "color": "#F7931A"
     },
