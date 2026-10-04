@@ -70,6 +70,15 @@ jobs:
           if result.returncode not in (0, 2):
               sys.exit(1)
 
+      - name: Sync Binance and OKX holdings
+        env:
+          BINANCE_API_KEY: ${{ secrets.BINANCE_API_KEY }}
+          BINANCE_API_SECRET: ${{ secrets.BINANCE_API_SECRET }}
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
+          OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+        run: python sync_data.py
+
       - name: Commit updated data
         run: |
           if git diff --quiet -- data.json; then
@@ -79,7 +88,7 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # 仅提交数据文件，不包含脚本生成的 .bak 或临时文件。
+          # 仅提交数据文件，不包含临时文件。
           git add -- data.json
           git commit -m "chore: update dashboard data"
           # 普通推送；远端有并发修改时失败，避免覆盖用户提交。

@@ -314,7 +314,6 @@ def save_document(path: Path, original: bytes, updated: dict) -> None:
     content = (json.dumps(updated, ensure_ascii=False, indent=2, allow_nan=False) + "\n").encode("utf-8")
     if path.read_bytes() != original:
         raise DataError("获取期间 data.json 已被修改，本次取消写入，请重试")
-    atomic_write(path.with_suffix(path.suffix + ".bak"), original)
     atomic_write(path, content)
 
 
@@ -340,7 +339,7 @@ def main(argv=None) -> int:
             save_document(path, original, updated)
         LOG.info("%s：成功 %d，失败 %d，跳过 %d；%s", report["status"],
                  len(report["succeeded"]), len(report["failed"]), len(report["skipped"]),
-                 f"已写入 {path}，原文件备份为 {path.name}.bak" if should_write else "未写入文件")
+                 f"已写入 {path}" if should_write else "未写入文件")
         return 2 if report["failed"] else 0
     except (OSError, ValueError, UnicodeError) as exc:
         LOG.error("更新终止: %s", exc)
