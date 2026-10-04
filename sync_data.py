@@ -12,7 +12,7 @@ python sync_data.py --dry-run    # 获取并校验，不写入
 映射不区分大小写，优先匹配完整代码；仅映射至已有持仓，现货合计后过滤小额。
 数量保留八位小数，敞口和合约成本保留两位小数。
 不新增持仓、字段或账户分组；其他字段和记录顺序保持不变。
-没有匹配仓位的记录保留原值；BTC/ETH/BNB 无仓位时数量和敞口归零。
+没有匹配仓位的记录数量和敞口归零，成本保留原值。
 敞口使用舍入前数量估值为 USDT，并按原页面约定保留正的绝对值。
 """
 
@@ -360,7 +360,6 @@ def update_document(data, snapshot, okx_snapshot=None):
         targets[key] = item
     totals = defaultdict(lambda: [ZERO, ZERO])
     costs = defaultdict(lambda: [ZERO, ZERO])
-    spot_keys = set()
     spot_quantities = defaultdict(lambda: ZERO)
     for asset, amount in combined.items():
         if asset.upper() not in IGNORED_SPOT:
@@ -368,7 +367,6 @@ def update_document(data, snapshot, okx_snapshot=None):
     for asset, amount in combined.items():
         symbol = spot_symbol(asset, targets)
         key = (symbol, "long")
-        spot_keys.add(key)
         if asset.upper() in IGNORED_SPOT or amount <= 0 or (symbol not in SPOT_EXCEPTIONS and spot_quantities[symbol] < Decimal("0.1")):
             continue
         if key in targets:
@@ -405,8 +403,7 @@ def update_document(data, snapshot, okx_snapshot=None):
             costs[key][1] += row["cost_quantity"] * row["cost"]
     count = 0
     for key, item in targets.items():
-        if key not in totals and key not in spot_keys and key[0] not in SPOT_EXCEPTIONS | IGNORED_SPOT:
-            continue
+        # 快照是完整持仓；未出现的已有记录表示已平仓或卖出。
         quantity, exposure = totals[key]
         item["quantity"] = quantity.quantize(Decimal("0.00000001"), rounding=ROUND_HALF_UP)
         item["exposure"] = rounded(exposure)
@@ -414,7 +411,7 @@ def update_document(data, snapshot, okx_snapshot=None):
         if cost_quantity > 0:
             item["cost"] = rounded(entry_value / cost_quantity)
         count += 1
-    LOG.info("匹配并更新 %d 条已有持仓；合约成本按数量加权，现货成本保留原值", count)
+    LOG.info("更新 %d 条已有持仓，无仓位的数量和敞口归零；合约成本按数量加权，其他成本保留原值", count)
     return updated
 
 

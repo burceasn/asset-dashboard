@@ -3,10 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
+  <meta name="color-scheme" content="light dark">
   <title>Atlas — 资产看板</title>
+  <script>
+    (() => {
+      let saved;
+      try { saved = localStorage.getItem('atlas-theme'); } catch {}
+      document.documentElement.dataset.theme = saved === 'light' || saved === 'dark'
+        ? saved : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    })();
+  </script>
   <style>
     :root {
+      color-scheme: light;
       --bg: #f2f2f7;
       --surface: rgba(255, 255, 255, .82);
       --surface-solid: #fff;
@@ -20,6 +29,37 @@
       --orange: #c93400;
       --shadow: 0 18px 44px rgba(0, 0, 0, .07), 0 2px 8px rgba(0, 0, 0, .04);
       --radius: 22px;
+      --card-border: #fff;
+      --chart-bg: #f7f8fa;
+      --chart-grid: #e5e5ea;
+      --gauge-track: #e9e9ef;
+      --yellow: #a07800;
+      --mint: #167337;
+      --tile-overlay: #ffffffc9;
+      --tile-border: #ffffffcc;
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #111114;
+      --surface: rgba(30, 30, 35, .94);
+      --surface-solid: #242429;
+      --text: #f5f5f7;
+      --secondary: #b1b1bb;
+      --tertiary: #9898a3;
+      --line: rgba(235, 235, 245, .14);
+      --blue: #64adff;
+      --green: #55d879;
+      --red: #ff6961;
+      --orange: #ff9b65;
+      --yellow: #e5c45b;
+      --mint: #65d99b;
+      --shadow: 0 18px 44px rgba(0, 0, 0, .22), 0 2px 8px rgba(0, 0, 0, .14);
+      --card-border: rgba(255, 255, 255, .08);
+      --chart-bg: #19191e;
+      --chart-grid: #383840;
+      --gauge-track: #383840;
+      --tile-overlay: #17171dd9;
+      --tile-border: #34343d;
     }
 
     * { box-sizing: border-box; }
@@ -49,11 +89,20 @@
     .brand-copy strong { display: block; font-size: 15px; letter-spacing: -.01em; }
     .brand-copy span { color: var(--secondary); font-size: 12px; }
     .updated { display: flex; align-items: center; gap: 8px; color: var(--secondary); font-size: 12px; }
+    .topbar-actions { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:12px; }
+    .theme-toggle { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; flex-shrink:0; }
+    .theme-toggle svg { width:18px; height:18px; }
+    .theme-toggle:hover { border-color:var(--blue); }
+    :root[data-theme="light"] .theme-sun, :root[data-theme="dark"] .theme-moon { display:none; }
+    :root[data-theme="dark"] .market-icon { background:#203149; }
+    :root[data-theme="dark"] .market-icon.crypto { color:#f5bd61; background:#3a2e1c; }
+    :root[data-theme="dark"] .logo { background:#34343d; color:var(--text); }
+    @media(max-width:560px) { .topbar-actions { width:100%; justify-content:space-between; } }
     .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(36,138,61,.10); }
 
 
     [hidden] { display:none !important; }
-    .card { background:var(--surface); border:1px solid #fff; border-radius:22px; box-shadow:var(--shadow); }
+    .card { background:var(--surface); border:1px solid var(--card-border); border-radius:22px; box-shadow:var(--shadow); }
     h1 { margin:0; font-size:24px; line-height:1.25; font-weight:600; letter-spacing:-.025em; }
     h2 { margin:0; font-size:20px; letter-spacing:-.025em; }
     .section-head { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:30px 0 16px; }
@@ -77,7 +126,7 @@
     .gauge-center strong { font-size:38px; line-height:1.1; letter-spacing:-.05em; }
     .gauge-center span { font-size:14px; margin-top:5px; }
     .range { height:9px; border-radius:10px; background:linear-gradient(90deg,#e25a53,#e9a251,#d5b83e,#6faf68,#248a3d); position:relative; }
-    .range i { position:absolute; top:-4px; height:17px; width:4px; border-radius:3px; background:#1d1d1f; box-shadow:0 0 0 2px white; transform:translateX(-50%); }
+    .range i { position:absolute; top:-4px; height:17px; width:4px; border-radius:3px; background:var(--text); box-shadow:0 0 0 2px var(--surface-solid); transform:translateX(-50%); }
     .range-labels { display:flex; justify-content:space-between; color:var(--secondary); font-size:12px; margin-top:12px; gap:8px; }
     .score-note { color:var(--secondary); font-size:13px; margin:18px 0 0; line-height:1.6; }
     .history { padding-top:18px; border-top:1px solid var(--line); }
@@ -102,7 +151,7 @@
     .pnl strong { font-size:16px; }
     .positive { color:var(--green); } .negative { color:var(--red); } .neutral { color:var(--secondary); }
     .state { padding:28px; margin:20px 0; line-height:1.6; }
-    button { border:1px solid var(--line); background:white; color:var(--blue); border-radius:10px; padding:10px 18px; cursor:pointer; }
+    button { border:1px solid var(--line); background:var(--surface-solid); color:var(--blue); border-radius:10px; padding:10px 18px; cursor:pointer; }
     button:focus-visible { outline:3px solid #007aff66; outline-offset:3px; }
     .footer { margin-top:24px; display:flex; justify-content:space-between; gap:16px; color:var(--secondary); font-size:12px; line-height:1.6; }
     @media(max-width:1150px) { .holding-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .sentiment-body { gap:16px; grid-template-columns:124px minmax(0,1fr); } .gauge { width:124px; height:124px; } }
@@ -139,9 +188,9 @@
     .allocation-summary dd { font-size:clamp(1.75rem,3vw,2.5rem); line-height:1.2; letter-spacing:-.045em; }
     .allocation-count { margin:0 0 3px; padding:7px 12px; border-radius:9px; background:var(--bg); color:var(--secondary); font-size:.8125rem; }
     .allocation-layout { padding-top:28px; }
-    .allocation-overview { display:grid; justify-items:center; gap:24px; padding:20px; background:#f7f8fa; border-radius:18px; }
+    .allocation-overview { display:grid; justify-items:center; gap:24px; padding:20px; background:var(--chart-bg); border-radius:18px; }
     .allocation-treemap { position:relative; width:100%; aspect-ratio:5/4; overflow:hidden; border-radius:12px; }
-    .treemap-tile { position:absolute; container-type:size; background:var(--asset-color); box-shadow:inset 0 0 0 1px #ffffffcc; overflow:hidden; border:0; border-radius:0; padding:0; touch-action:manipulation; }
+    .treemap-tile { position:absolute; container-type:size; background:var(--asset-color); box-shadow:inset 0 0 0 1px var(--tile-border); overflow:hidden; border:0; border-radius:0; padding:0; touch-action:manipulation; }
     .treemap-tile[aria-expanded="true"] { box-shadow:inset 0 0 0 3px var(--blue); z-index:1; }
     .treemap-tile[aria-expanded="true"] .treemap-label { inset:3px; }
     .treemap-label { pointer-events:none; }
@@ -166,7 +215,7 @@
     .detail-member>strong { flex-shrink:0; }
     @media(max-width:560px) { .position-detail { inset:auto 12px max(12px,env(safe-area-inset-bottom)) !important; width:auto; max-height:65dvh; } }
     .treemap-tile:focus-visible { outline:3px solid var(--text); outline-offset:-3px; z-index:1; }
-    .treemap-label { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:7px; padding:8px; text-align:center; color:#1d1d1f; background:#ffffffc9; }
+    .treemap-label { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:7px; padding:8px; text-align:center; color:var(--text); background:var(--tile-overlay); }
     .treemap-name { max-width:100%; font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .treemap-percent { font-size:12px; white-space:nowrap; }
     .treemap-label .logo { flex:0 0 32px; width:32px; height:32px; border-radius:9px; }
@@ -205,7 +254,14 @@
         <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 17.5 9.2 12l3.2 3.1L20 7.5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7.5h5v5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="brand-copy"><h1 id="brandName">Atlas Portfolio</h1></div>
       </div>
-      <div class="updated"><span id="updatedAt">数据已更新</span></div>
+      <div class="topbar-actions">
+        <div class="updated"><span id="updatedAt">数据已更新</span></div>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="深色模式" aria-pressed="false">
+          <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.5 14a8.5 8.5 0 0 1-10.5-10.5A8.5 8.5 0 1 0 20.5 14Z"/></svg>
+          <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
+          <span id="themeLabel">深色模式</span>
+        </button>
+      </div>
     </header>
     <div id="state" class="state card" role="status" hidden><p id="stateText"></p><button id="retry" type="button">重新加载</button></div>
     <div id="content" hidden>
@@ -229,8 +285,28 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const usd = new Intl.NumberFormat('en-US', {style:'currency',currency:'USD'});
-  const qty = new Intl.NumberFormat('en-US', {maximumFractionDigits:8});
+  const systemTheme = matchMedia('(prefers-color-scheme: dark)');
+  let explicitTheme = false;
+  try { explicitTheme = ['light','dark'].includes(localStorage.getItem('atlas-theme')); } catch {}
+  function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    const dark = theme === 'dark';
+    $('themeToggle').setAttribute('aria-pressed', String(dark));
+    $('themeToggle').title = dark ? '切换至浅色模式' : '切换至深色模式';
+    $('themeLabel').textContent = dark ? '浅色模式' : '深色模式';
+  }
+  applyTheme(document.documentElement.dataset.theme);
+  $('themeToggle').addEventListener('click', () => {
+    const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    explicitTheme = true;
+    applyTheme(theme);
+    try { localStorage.setItem('atlas-theme', theme); } catch {}
+  });
+  systemTheme.addEventListener('change', event => {
+    if (!explicitTheme) applyTheme(event.matches ? 'dark' : 'light');
+  });
+  const usd = new Intl.NumberFormat('en-US', {style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2});
+  const qty = new Intl.NumberFormat('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const finite = v => typeof v === 'number' && Number.isFinite(v);
   const signed = v => (v > 0 ? '+' : '') + usd.format(v);
@@ -258,18 +334,18 @@
     return `<span class="logo" aria-hidden="true"><span>${esc(glyph)}</span>${path ? `<img src="${esc(path)}" alt="" loading="lazy">` : ''}</span>`;
   }
   function assetHead(a,badge='') { return `<header class="asset-head">${logo(a)}<div class="asset-copy"><strong>${esc(a.name)}</strong><span>${esc(a.symbol)}</span></div>${badge}</header>`; }
-  function zone(score) { return score<=24 ? ['极端恐惧','#d70015'] : score<=44 ? ['恐惧','#c93400'] : score<=55 ? ['中性','#a07800'] : score<=74 ? ['贪婪','#248a3d'] : ['极端贪婪','#167337']; }
+  function zone(score) { return score<=24 ? ['极端恐惧','var(--red)'] : score<=44 ? ['恐惧','var(--orange)'] : score<=55 ? ['中性','var(--yellow)'] : score<=74 ? ['贪婪','var(--green)'] : ['极端贪婪','var(--mint)']; }
   function spark(history,color,id) {
     if (!history.length) return '<p class="score-note">暂无历史数据</p>';
     const points = history.map((v,i) => [history.length===1 ? 250 : 12+i/(history.length-1)*476, 98-v*.86]);
     const line=points.map(p=>p.join(',')).join(' '), last=points.at(-1);
-    return `<svg class="spark" viewBox="0 0 500 112" preserveAspectRatio="none" role="img" aria-label="${esc('历史指数（0 至 100）：'+history.join('、'))}"><defs><linearGradient id="gradient-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity=".02"/></linearGradient></defs><path d="M12 55H488 M12 98H488" stroke="#e5e5ea" stroke-dasharray="3 5" fill="none"/><path d="M${points[0][0]} 98 ${points.map(p=>'L'+p.join(' ')).join(' ')} L${last[0]} 98Z" fill="url(#gradient-${id})"/><polyline points="${line}" stroke="${color}" stroke-width="2.5" vector-effect="non-scaling-stroke" fill="none" stroke-linejoin="round"/><circle cx="${last[0]}" cy="${last[1]}" r="3.5" fill="${color}"/></svg>`;
+    return `<svg class="spark" viewBox="0 0 500 112" preserveAspectRatio="none" role="img" aria-label="${esc('历史指数（0 至 100）：'+history.map(v=>qty.format(v)).join('、'))}"><defs><linearGradient id="gradient-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity=".02"/></linearGradient></defs><path d="M12 55H488 M12 98H488" stroke="var(--chart-grid)" stroke-dasharray="3 5" fill="none"/><path d="M${points[0][0]} 98 ${points.map(p=>'L'+p.join(' ')).join(' ')} L${last[0]} 98Z" fill="url(#gradient-${id})"/><polyline points="${line}" stroke="${color}" stroke-width="2.5" vector-effect="non-scaling-stroke" fill="none" stroke-linejoin="round"/><circle cx="${last[0]}" cy="${last[1]}" r="3.5" fill="${color}"/></svg>`;
   }
   function sentiment(key,m) {
     const [label,color]=zone(m.score), c=2*Math.PI*55;
     const icon = key==='usStocks' ? '<path d="M5 3v18M12 3v18M19 3v18"/><path d="M3 8h4v7H3zM10 5h4v6h-4zM17 11h4v6h-4z" fill="currentColor"/>' : '<circle cx="12" cy="12" r="9"/><path d="M9 7.5h4a2.25 2.25 0 0 1 0 4.5H9m0 0h4.5a2.25 2.25 0 0 1 0 4.5H9v-9M11 5v2.5m0 9V19"/>';
     const change=m.history.length>1 ? m.history.at(-1)-m.history[0] : null;
-    return `<article class="sentiment card"><div class="sentiment-head"><span class="market-icon ${key==='crypto'?'crypto':''}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">${icon}</svg></span><div class="market-copy"><strong>${esc(m.name)}</strong><span>${esc(m.source)}</span></div></div><div class="sentiment-body"><div class="gauge" role="img" aria-label="${esc(m.name)}指数 ${m.score} 分，${label}"><svg viewBox="0 0 140 140" aria-hidden="true"><circle cx="70" cy="70" r="55" fill="none" stroke="#e9e9ef" stroke-width="11"/><circle cx="70" cy="70" r="55" fill="none" stroke="${color}" stroke-width="11" stroke-dasharray="${c*m.score/100} ${c}" transform="rotate(-90 70 70)"/></svg><div class="gauge-center" style="color:${color}"><strong>${m.score}</strong><span>${label}</span></div></div><div><div class="range" aria-hidden="true"><i style="left:${m.score}%"></i></div><div class="range-labels"><span>极端恐惧</span><span>中性</span><span>极端贪婪</span></div><p class="score-note">当前得分 ${m.score} / 100</p></div></div><div class="history"><div class="history-head"><span>历史走势 · ${m.history.length} 个观测值</span><strong>${change===null ? '暂无区间变化' : '较期初 '+(change>0?'+':'')+qty.format(change)+' 点'}</strong></div>${spark(m.history,color,key)}${m.history.length ? `<div class="history-foot"><span>期初 ${m.history[0]}</span><span>最近 ${m.history.at(-1)}</span></div>` : ''}</div></article>`;
+    return `<article class="sentiment card"><div class="sentiment-head"><span class="market-icon ${key==='crypto'?'crypto':''}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">${icon}</svg></span><div class="market-copy"><strong>${esc(m.name)}</strong><span>${esc(m.source)}</span></div></div><div class="sentiment-body"><div class="gauge" role="img" aria-label="${esc(m.name)}指数 ${qty.format(m.score)} 分，${label}"><svg viewBox="0 0 140 140" aria-hidden="true"><circle cx="70" cy="70" r="55" fill="none" stroke="var(--gauge-track)" stroke-width="11"/><circle cx="70" cy="70" r="55" fill="none" stroke="${color}" stroke-width="11" stroke-dasharray="${c*m.score/100} ${c}" transform="rotate(-90 70 70)"/></svg><div class="gauge-center" style="color:${color}"><strong>${qty.format(m.score)}</strong><span>${label}</span></div></div><div><div class="range" aria-hidden="true"><i style="left:${m.score}%"></i></div><div class="range-labels"><span>极端恐惧</span><span>中性</span><span>极端贪婪</span></div><p class="score-note">当前得分 ${qty.format(m.score)} / 100.00</p></div></div><div class="history"><div class="history-head"><span>历史走势 · ${m.history.length} 个观测值</span><strong>${change===null ? '暂无区间变化' : '较期初 '+(change>0?'+':'')+qty.format(change)+' 点'}</strong></div>${spark(m.history,color,key)}${m.history.length ? `<div class="history-foot"><span>期初 ${qty.format(m.history[0])}</span><span>最近 ${qty.format(m.history.at(-1))}</span></div>` : ''}</div></article>`;
   }
   function holding(a) {
     const gain=positionGain(a);
@@ -278,7 +354,7 @@
   }
 
   const positionGain = a => Math.round((a.direction==='short' ? a.cost-a.price : a.price-a.cost)*Math.abs(a.quantity)*100)/100;
-  const percent = n => new Intl.NumberFormat('zh-CN',{style:'percent',maximumFractionDigits:2}).format(n);
+  const percent = n => new Intl.NumberFormat('zh-CN',{style:'percent',minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
   function positionColor(a) {
     // Use the asset color from data.json; neutral gray only when absent or invalid.
     const color=typeof a.color === 'string' ? a.color.trim() : '';

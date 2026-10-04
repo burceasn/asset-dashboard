@@ -1,19 +1,3 @@
-#!/usr/bin/env python3
-"""更新 Atlas data.json；Python 3.10+，先执行 pip install -r requirements.txt。
-
-    python update_data.py
-    python update_data.py --dry-run
-    python update_data.py --strict --history-days 30
-
-接口参考 feer_index.md。日线按 UTC+8 划分，仅接受 confirm=1。
-默认独立更新各数据源，失败项保留原值；--strict 在任何失败时不写入。
-退出码：0 全部成功，1 文件/配置错误，2 部分或全部接口失败。
-BTC、ETH、BNB 使用 SYMBOL-USDT，其余资产使用 SYMBOL-USDT-SWAP，与分组无关。
-仅获取敞口不为 0 的资产价格；零敞口资产保持原样，不发起价格请求。
-资产仅更新 price 和 exposure，敞口按数量乘新价格计算并保留空头方向。
-敞口四舍五入至两位小数，其他资产字段保持不变，不新增价格附加字段。
-"""
-
 from __future__ import annotations
 
 import argparse
