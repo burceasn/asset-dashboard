@@ -422,10 +422,10 @@
       "direction": "short",
       "name": "SpaceX",
       "logo": "asset/SPCX.svg",
-      "quantity": 67.45000000,
+      "quantity": 0.00000000,
       "cost": 147.17,
       "price": 159.16,
-      "exposure": 10740.74,
+      "exposure": 0.00,
       "margin": 941.5,
       "color": "#005288"
     },
