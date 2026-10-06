@@ -173,7 +173,7 @@
     .profit-name .logo { flex:0 0 32px; width:32px; height:32px; border-radius:10px; }
     .profit-name .logo img { padding:5px; }
     .profit-symbol { min-width:0; overflow-wrap:anywhere; }
-    #profitChart { margin-top:22px; }
+    #profitChart, #realizedProfitChart { margin-top:22px; }
     .profit-row { min-height:46px; }
     .profit-plot { position:relative; height:32px; background:linear-gradient(to right,transparent calc(50% - .5px),#b8b8c1 calc(50% - .5px),#b8b8c1 calc(50% + .5px),transparent calc(50% + .5px)); }
     .profit-bar { position:absolute; top:8px; height:16px; border-radius:3px; }
@@ -278,6 +278,12 @@
         <div class="analysis-panel" id="position-panel" role="tabpanel" aria-labelledby="position-tab" tabindex="0" hidden><div id="positionChart"></div></div>
       </section>
       <section aria-labelledby="holdings-title"><div class="section-head"><h2 id="holdings-title">全部持仓</h2><span id="holdingCount"></span></div><div class="liquidity-grid" id="liquidityGrid"></div><div class="holding-grid" id="holdingGrid"></div></section>
+      <section class="portfolio-analysis card" aria-labelledby="realized-title">
+        <div class="analysis-header"><h2 id="realized-title">已实现盈亏</h2><span class="neutral">USDT</span></div>
+        <p class="chart-description">按交易历史累计汇总，无图标的交易对合并为其他。</p>
+        <div id="realizedProfitChart" aria-live="polite"></div>
+        <button id="realizedRetry" type="button" hidden>重新加载已实现盈亏</button>
+      </section>
     </div>
     <noscript><p class="state card">请启用 JavaScript 以查看资产看板。</p></noscript>
   </main>
@@ -382,6 +388,74 @@
     ];
   }
   let closePositionDetail = () => {};
+  const tradeIcons = new Set('AAPL ALIBABA ANTHROPIC AVGO BE BNB BRK-B BTC COST CRCL CXMT ETH GOOGL MICRON MRVL NDAQ NVDA OpenAI PLTR QCOM SPCX TENCENT TSLA TSMC XIAOMI ZHIPU'.split(' '));
+  const tradeIconAliases = {MU:'MICRON', MUU:'MICRON', NVDL:'NVDA', HK1810:'XIAOMI', BRKB:'BRK-B'};
+  function parseTradeHistory(text) {
+    const rows=[];
+    let row=[], field='', quoted=false;
+    text=text.replace(/^\uFEFF/,'').replace(/\r\n/g,'\n');
+    for (let i=0;i<text.length;i++) {
+      const ch=text[i];
+      if (ch==='"') {
+        if (quoted && text[i+1]==='"') { field+='"'; i++; }
+        else quoted=!quoted;
+      } else if (!quoted && (ch===',' || ch==='\n')) {
+        row.push(field); field='';
+        if (ch==='\n') { if (row.some(value=>value.trim())) rows.push(row); row=[]; }
+      } else field+=ch;
+    }
+    if (quoted) throw Error('交易历史 CSV 格式无效');
+    row.push(field);
+    if (row.some(value=>value.trim())) rows.push(row);
+    const header=rows.shift() || [];
+    const pairIndex=header.indexOf('交易对'), gainIndex=header.indexOf('已实现盈亏（USDT）');
+    if (pairIndex<0 || gainIndex<0) throw Error('交易历史缺少盈亏字段');
+    const groups=new Map();
+    for (const record of rows) {
+      const pair=record[pairIndex]?.trim();
+      const rawGain=record[gainIndex]?.trim();
+      const gain=Number(rawGain);
+      if (!pair || !rawGain || !Number.isFinite(gain)) throw Error('交易历史数值无效');
+      // The export stores cents; sum integers so grouped totals remain exact.
+      const cents=Math.round(gain*100);
+      if (!cents) continue;
+      const symbol=pair.split('/')[0].toUpperCase();
+      const icon=tradeIconAliases[symbol] || symbol;
+      const known=tradeIcons.has(icon), key=known ? pair : '其他';
+      if (!groups.has(key)) groups.set(key,{symbol:known?symbol:'其他',name:key,logo:known?`asset/${icon}.svg`:'',cents:0});
+      groups.get(key).cents+=cents;
+    }
+    return [...groups.values()].sort((a,b)=>(a.symbol==='其他')-(b.symbol==='其他') || b.cents-a.cents);
+  }
+  function renderRealizedProfit(items) {
+    if (!items.length) {
+      $('realizedProfitChart').innerHTML='<p class="chart-empty">暂无已实现盈亏记录</p>';
+      return;
+    }
+    const scale=Math.max(...items.map(a=>Math.abs(a.cents))) || 1;
+    const total=items.reduce((sum,a)=>sum+a.cents,0)/100;
+    const amount=value=>(value>0?'+':'')+qty.format(value);
+    const rows=items.map(a=>{
+      const gain=a.cents/100, width=Math.abs(a.cents)/scale*50;
+      const bar=gain===0 ? '<i class="profit-zero"></i>' : `<i class="profit-bar ${gain<0?'loss':'gain'}" style="left:${gain<0?50-width:50}%;width:${width}%"></i>`;
+      return `<div class="profit-row" aria-label="${esc(a.name)}，已实现盈亏 ${amount(gain)} USDT"><span class="profit-name" title="${esc(a.name)}">${logo(a)}<span class="profit-symbol">${esc(a.symbol)}</span></span><div class="profit-plot" aria-hidden="true">${bar}</div><span class="profit-value ${tone(gain)}">${amount(gain)}</span></div>`;
+    }).join('');
+    $('realizedProfitChart').innerHTML=`<div class="profit-total"><span>合计已实现盈亏</span><strong class="${tone(total)}">${amount(total)}</strong></div>${rows}`;
+  }
+  async function loadRealizedProfit() {
+    $('realizedRetry').hidden=true;
+    $('realizedProfitChart').innerHTML='<p class="chart-empty">正在加载交易历史…</p>';
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),10000);
+    try {
+      const response=await fetch('./trade_history.csv',{cache:'no-store',signal:controller.signal});
+      if (!response.ok) throw Error('HTTP '+response.status);
+      renderRealizedProfit(parseTradeHistory(await response.text()));
+    } catch {
+      $('realizedProfitChart').innerHTML='<p class="chart-empty">无法加载交易历史，请稍后重试。</p>';
+      $('realizedRetry').hidden=false;
+    } finally { clearTimeout(timeout); }
+  }
   function renderPortfolioCharts(holdings) {
     closePositionDetail();
     if (!holdings.length) {
@@ -608,6 +682,8 @@
     });
   });
   $('retry').addEventListener('click',load);
+  $('realizedRetry').addEventListener('click',loadRealizedProfit);
+  loadRealizedProfit();
   load();
 })();
 </script>
