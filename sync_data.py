@@ -3,16 +3,19 @@
 
 python sync_data.py              # 获取并写入
 python sync_data.py --dry-run    # 获取并校验，不写入
+python sync_data.py --okx-only   # 只查询 OKX（GitHub Actions 使用）
 
 读取同目录 .env 或环境变量中的币安及 OKX 配置，仅发起 GET 请求。
 现货与理财跨平台合并，过滤 USDT/USDC；除 BTC/ETH/BNB 外不足 0.1 不展示。
-合约按币种和方向汇总敞口和数量加权成本；HK1810 映射到 XIAOMI。
+合约按币种和方向汇总敞口和数量加权成本；小米、腾讯、联想的名称代码与港股代码统一匹配。
 现货不更新成本，也不参与合约成本加权；敞口沿用现有估值逻辑。
 股票代码B / x股票代码现货按自身行情估值，并入对应股票多头，成本仅取合约。
 映射不区分大小写，优先匹配完整代码；仅映射至已有持仓，现货合计后过滤小额。
 数量保留八位小数，敞口和合约成本保留两位小数。
 不新增持仓、字段或账户分组；其他字段和记录顺序保持不变。
 没有匹配仓位的记录数量和敞口归零，成本保留原值。
+仅 OKX 模式的数量和敞口只包含 OKX，不保留之前合计中的币安部分。
+OKX XIAOMI 的价格/成本乘 asset_symbols.py 中的系数，数量除以系数，保持名义敞口。
 敞口使用舍入前数量估值为 USDT，并按原页面约定保留正的绝对值。
 """
 
@@ -36,7 +39,8 @@ import requests
 import simplejson as json
 from dotenv import load_dotenv
 
-from update_data import atomic_write
+from update_data import atomic_write, canonical_symbol
+from asset_symbols import okx_price_factor
 
 ROOT = Path(__file__).resolve().parent
 SPOT = "https://api.binance.com"
@@ -263,13 +267,9 @@ def fetch_snapshot(client):
     return combined, positions, price
 
 
-SYMBOL_ALIASES = {"HK1810": "XIAOMI"}
-
-
 def spot_symbol(asset, targets):
     """仅对现货解析股票代币；完整代码优先，避免误拆 BRKB、BNB 等。"""
-    symbol = asset.upper()
-    symbol = SYMBOL_ALIASES.get(symbol, symbol)
+    symbol = canonical_symbol(asset)
     if any((symbol, side) in targets for side in ("long", "short")):
         return symbol
     candidates = []
@@ -278,7 +278,7 @@ def spot_symbol(asset, targets):
     if symbol.startswith("X"):
         candidates.append(symbol[1:])
     for candidate in candidates:
-        candidate = SYMBOL_ALIASES.get(candidate, candidate)
+        candidate = canonical_symbol(candidate)
         if candidate not in SPOT_EXCEPTIONS | IGNORED_SPOT and (candidate, "long") in targets:
             return candidate
     return symbol
@@ -332,9 +332,10 @@ def fetch_okx_snapshot(client):
             quote = instrument["ctValCcy"]
         else:
             raise SyncError(f"OKX {row['instId']} 合约面值币种无法识别")
-        normalized.append({"symbol": symbol, "direction": side, "quantity": quantity,
+        factor = okx_price_factor(symbol)
+        normalized.append({"symbol": symbol, "direction": side, "quantity": quantity / factor,
                            "exposure": quantity * mark * price(quote),
-                           "cost_quantity": cost_quantity, "cost": entry * price(quote)})
+                           "cost_quantity": cost_quantity / factor, "cost": entry * price(quote) * factor})
     return combined, normalized, price
 
 
@@ -352,7 +353,7 @@ def update_document(data, snapshot, okx_snapshot=None):
             combined[asset] += decimal(amount)
     targets = {}
     for item in updated["holdings"]:
-        key = (item["symbol"].upper(), item["direction"])
+        key = (canonical_symbol(item["symbol"]), item["direction"])
         if key[1] not in {"long", "short"}:
             raise SyncError(f"{key[0]} 的 direction 无效")
         if key in targets:
@@ -387,7 +388,7 @@ def update_document(data, snapshot, okx_snapshot=None):
         if quote is None:
             raise SyncError(f"无法识别合约计价币种：{row['symbol']}")
         symbol = contract[:-len(quote)]
-        key = (SYMBOL_ALIASES.get(symbol, symbol), "short" if amount < 0 else "long")
+        key = (canonical_symbol(symbol), "short" if amount < 0 else "long")
         if key in targets:
             rate = price_for(quote)
             totals[key][0] += abs(amount)
@@ -395,7 +396,7 @@ def update_document(data, snapshot, okx_snapshot=None):
             costs[key][0] += abs(amount)
             costs[key][1] += abs(amount) * decimal(row["entryPrice"]) * rate
     for row in okx_positions:
-        key = (SYMBOL_ALIASES.get(row["symbol"], row["symbol"]), row["direction"])
+        key = (canonical_symbol(row["symbol"]), row["direction"])
         if key in targets:
             totals[key][0] += row["quantity"]
             totals[key][1] += row["exposure"]
@@ -419,6 +420,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--data", type=Path, default=ROOT / "data.json")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--okx-only", action="store_true", help="只查询 OKX，输出仅包含 OKX 的持仓数量和敞口")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     client = None
@@ -426,17 +428,22 @@ def main(argv=None):
     try:
         load_dotenv(ROOT / ".env")
         key, secret = os.getenv("BINANCE_API_KEY"), os.getenv("BINANCE_API_SECRET")
-        if not key or not secret:
+        if not args.okx_only and (not key or not secret):
             raise SyncError("请在 .env 中设置 BINANCE_API_KEY 和 BINANCE_API_SECRET")
         path = args.data.resolve()
         original = path.read_bytes()
         data = json.loads(original.decode("utf-8-sig"), use_decimal=True)
-        client = BinanceClient(key, secret)
         okx_client = OKXClient()
-        updated = update_document(data, fetch_snapshot(client), fetch_okx_snapshot(okx_client))
+        okx_snapshot = fetch_okx_snapshot(okx_client)
+        if args.okx_only:
+            snapshot = ({}, [], okx_snapshot[2])
+        else:
+            client = BinanceClient(key, secret)
+            snapshot = fetch_snapshot(client)
+        updated = update_document(data, snapshot, okx_snapshot)
         content = (json.dumps(updated, ensure_ascii=False, indent=2, use_decimal=True, allow_nan=False) + "\n").encode("utf-8")
         if args.dry_run:
-            LOG.info("币安与 OKX 数据获取成功，预览模式未写入文件")
+            LOG.info("%s 数据获取成功，预览模式未写入文件", "OKX" if args.okx_only else "币安与 OKX")
         else:
             if path.read_bytes() != original:
                 raise SyncError("获取期间 data.json 已被修改，取消写入，请重试")

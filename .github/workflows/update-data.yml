@@ -46,6 +46,13 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
+      - name: Sync OKX holdings
+        env:
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
+          OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+        run: python sync_data.py --okx-only
+
       - name: Fetch latest data
         id: fetch
         shell: python
@@ -70,30 +77,28 @@ jobs:
           if result.returncode not in (0, 2):
               sys.exit(1)
 
-      - name: Sync Binance and OKX holdings
+      - name: Sync OKX trade history
         env:
-          BINANCE_API_KEY: ${{ secrets.BINANCE_API_KEY }}
-          BINANCE_API_SECRET: ${{ secrets.BINANCE_API_SECRET }}
           OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
           OKX_API_SECRET: ${{ secrets.OKX_API_SECRET }}
           OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
-        run: python sync_data.py
+        run: python position_history.py --okx-only
 
       - name: Commit updated data
         run: |
-          if git diff --quiet -- data.json; then
-            echo "data.json 没有变化，无需提交。" >> "$GITHUB_STEP_SUMMARY"
+          git add -- data.json trade_history.csv
+          if git diff --cached --quiet -- data.json trade_history.csv; then
+            echo "数据没有变化，无需提交。" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # 仅提交数据文件，不包含临时文件。
-          git add -- data.json
           git commit -m "chore: update dashboard data"
           # 普通推送；远端有并发修改时失败，避免覆盖用户提交。
           git push origin "HEAD:refs/heads/$TARGET_BRANCH"
-          echo "已将 data.json 提交到默认分支。" >> "$GITHUB_STEP_SUMMARY"
+          echo "已将 OKX 持仓与历史数据提交到默认分支。" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Report data source failures
         if: steps.fetch.outputs.exit_code == '2'

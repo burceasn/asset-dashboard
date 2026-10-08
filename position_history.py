@@ -3,8 +3,9 @@
 
 python position_history.py             # 从 CSV 最新日期零点查询到现在，更新末尾
 python position_history.py --dry-run   # 查询和校验，不写入
+python position_history.py --okx-only  # 只查询 OKX（GitHub Actions 使用）
 
-独立脚本，只依赖 requests、python-dotenv 和标准库；读取同目录 .env。
+读取同目录 .env；与持仓脚本共用 asset_symbols.py 中的小米价格换算系数。
 读取 CSV 最新的北京时间日期，从当天零点重新查询两家交易所的成交。
 保留该日期以前的 CSV 行，重建该日期及之后的记录，避免重复追加当天旧交易。
 本次查询结果按北京时间日期分组，各日内使用现有合并策略：同交易对、同操作，
@@ -12,7 +13,9 @@ python position_history.py --dry-run   # 查询和校验，不写入
 价格按数量加权，数量、名义金额、交易盈亏相加，最后四舍五入到两位。
 CSV 按时间排序，时间格式 YYYY/MM/DD/HH/MM/SS；不含交易所或成交 ID 列。
 盈亏不含手续费、资金费；仓位金额为名义金额而不是保证金。
-两家接口全部成功后原子写入 CSV；写入期间的临时文件自动清除。
+所选交易所接口全部成功后原子写入 CSV；写入期间的临时文件自动清除。
+仅 OKX 模式仍使用同一 CSV，重建日期内仅包含 OKX 查询结果；更早记录保留。
+XIAOMI/USDT 统一为 HK1810/USDT，价格乘系数，数量除系数；金额和盈亏不变。
 """
 from __future__ import annotations
 
@@ -34,6 +37,7 @@ from urllib.parse import urlencode
 
 import requests
 from dotenv import load_dotenv
+from asset_symbols import okx_price_factor
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_FILE = ROOT / "trade_history.csv"
@@ -209,6 +213,11 @@ class OKXClient(HttpClient):
                 continue
             if status != 200 or code != "0":
                 raise HistoryError(f"OKX 请求失败：HTTP {status}，错误码 {code}")
+            if path.startswith("/api/v5/market/history-candles?"):
+                data = payload.get("data")
+                if not isinstance(data, list) or not all(isinstance(row, list) and len(row) >= 2 for row in data):
+                    raise HistoryError("OKX 历史 K 线格式错误")
+                return data
             return checked_rows(payload, "data")
         raise HistoryError("OKX 请求重试后仍失败")
 
@@ -267,8 +276,8 @@ def discover_symbols(client, start, end, events):
 
 
 class Converter:
-    def __init__(self, http):
-        self.http, self.cache = http, {}
+    def __init__(self, http, okx=None):
+        self.http, self.cache, self.okx = http, {}, okx
 
     def rate(self, asset, ts):
         if asset == "USDT":
@@ -276,6 +285,15 @@ class Converter:
         minute = ts // 60000 * 60000
         key = (asset, minute)
         if key not in self.cache:
+            if self.okx is not None:
+                data = self.okx.request("/api/v5/market/history-candles", {
+                    "instId": asset + "-USDT", "bar": "1m", "after": minute + 1,
+                    "before": minute - 1, "limit": 1,
+                }, signed=False)
+                if not data or int(data[0][0]) != minute:
+                    raise HistoryError(f"缺少 OKX {asset}/USDT 成交时的历史汇率")
+                self.cache[key] = decimal(data[0][1])
+                return self.cache[key]
             status, data = self.http.get("https://api.binance.com/api/v3/klines", params={
                 "symbol": asset + "USDT", "interval": "1m", "startTime": minute,
                 "endTime": minute + 59999, "limit": 1,
@@ -289,8 +307,13 @@ class Converter:
 def event(source, uid, symbol, op, ts, price, qty, amount, pnl):
     if decimal(price) <= 0 or decimal(qty) <= 0 or decimal(amount) < 0:
         raise HistoryError("成交价格、数量或金额无效")
+    trade_pair = pair(symbol)
+    if source == "okx" and trade_pair.split("/")[0] == "XIAOMI":
+        factor = okx_price_factor("XIAOMI")
+        price, qty = decimal(price) * factor, decimal(qty) / factor
+        trade_pair = "HK1810/" + trade_pair.split("/", 1)[1]
     return {"id": f"{source}:{uid}", "source": source, "symbol": symbol,
-            "pair": pair(symbol), "op": op, "time": int(ts),
+            "pair": trade_pair, "op": op, "time": int(ts),
             **{k: str(decimal(v)) for k, v in zip(NUMBERS, (price, qty, amount, pnl))}}
 
 
@@ -435,7 +458,15 @@ def read_csv(content):
     reader = csv.DictReader(io.StringIO(content.decode("utf-8-sig")))
     if reader.fieldnames != FIELDS:
         raise HistoryError("CSV 字段与预期不一致")
-    return list(reader)
+    records = list(reader)
+    # 旧 CSV 的 XIAOMI 为 OKX 原报价；统一为 HK1810 后不会重复换算。
+    for row in records:
+        if row["交易对"].upper().startswith("XIAOMI/"):
+            factor = okx_price_factor("XIAOMI")
+            row["交易对"] = "HK1810/" + row["交易对"].split("/", 1)[1]
+            row["成交价格"] = display(decimal(row["成交价格"]) * factor)
+            row["成交数量"] = display(decimal(row["成交数量"]) / factor)
+    return records
 
 
 def atomic_write(path, content):
@@ -504,6 +535,7 @@ def history_floor(now):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--csv", type=Path, default=DEFAULT_FILE)
+    parser.add_argument("--okx-only", action="store_true", help="只查询 OKX，不请求币安接口")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--merge-seconds", type=int, default=60)
     parser.add_argument("--timeout", type=float, default=15)
@@ -527,16 +559,18 @@ def main(argv=None):
             if start < history_floor(end):
                 raise HistoryError("CSV 最新日期超出接口三个月保留期，请先补齐历史数据")
             LOG.info("从 CSV 最新日期查询：北京时间 %s 至 %s", local_time(start), local_time(end))
-            binance = BinanceClient(args.timeout, args.retries)
-            clients.append(binance)
+            binance = None
+            if not args.okx_only:
+                binance = BinanceClient(args.timeout, args.retries)
+                clients.append(binance)
             okx = OKXClient(args.timeout, args.retries)
             clients.append(okx)
             http = HttpClient(args.timeout, args.retries)
             clients.append(http)
-            converter = Converter(http)
+            converter = Converter(http, okx=okx if args.okx_only else None)
             # 旧 CSV 只用于发现候选合约，不从两位小数数据推算原始成交。
             hints = [{"source": "baseline", "pair": pair(r["交易对"])} for r in existing]
-            incoming = fetch_binance(binance, start, end, hints, converter)
+            incoming = fetch_binance(binance, start, end, hints, converter) if binance else []
             incoming.extend(fetch_okx(okx, start, end, converter))
             records, fetched = refresh_tail(existing, incoming, start, end, args.merge_seconds)
             content = csv_content(records)

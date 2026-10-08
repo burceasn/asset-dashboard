@@ -15,6 +15,7 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
 
 import requests
+from asset_symbols import canonical_symbol
 
 LOG = logging.getLogger("atlas.update")
 SHANGHAI = timezone(timedelta(hours=8))
@@ -27,6 +28,8 @@ CNN_HEADERS = {
 }
 FNG_URL = "https://api.alternative.me/fng/"
 OKX_TICKER_URL = "https://www.okx.com/api/v5/market/ticker"
+YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/"
+HK_YAHOO_SYMBOLS = {"HK1810": "1810.HK", "HK0700": "0700.HK", "HK0992": "0992.HK"}
 SPOT_SYMBOLS = frozenset({"BTC", "ETH", "BNB"})
 DEFAULT_FILE = Path(__file__).resolve().with_name("data.json")
 
@@ -169,6 +172,32 @@ def instrument_for(asset: dict) -> str:
     return instrument
 
 
+def fetch_yahoo_quote(client: HttpClient, symbol: str) -> float:
+    payload = client.get(YAHOO_CHART_URL + symbol, {"interval": "1d", "range": "5d"})
+    chart = payload.get("chart")
+    if not isinstance(chart, dict) or chart.get("error"):
+        raise DataError(f"Yahoo {symbol} 行情查询失败")
+    results = chart.get("result")
+    if not isinstance(results, list) or len(results) != 1 or not isinstance(results[0], dict):
+        raise DataError(f"Yahoo {symbol} 行情格式错误")
+    meta = results[0].get("meta")
+    if not isinstance(meta, dict) or meta.get("symbol") != symbol or meta.get("currency") != "HKD":
+        raise DataError(f"Yahoo {symbol} 产品代码或币种不匹配")
+    observed = timestamp(meta.get("regularMarketTime"))
+    # 港股休市期间保留最近成交价，不能套用 OKX 的 15 分钟时效限制。
+    if datetime.now(timezone.utc) - observed > timedelta(days=7):
+        raise DataError(f"Yahoo {symbol} 行情超过 7 天未更新")
+    price = number(meta.get("regularMarketPrice"), "Yahoo 最新成交价", minimum=0)
+    if price <= 0:
+        raise DataError("Yahoo 最新成交价必须大于零")
+    return price
+
+
+def fetch_hk_price(client: HttpClient, symbol: str) -> float:
+    """直接使用 Yahoo 返回的港币股价，不做汇率换算。"""
+    return fetch_yahoo_quote(client, symbol)
+
+
 def fetch_price(client: HttpClient, instrument: str) -> float:
     """返回 OKX 最新成交价，而非上一根已收盘的日线价格。"""
     payload = client.get(OKX_TICKER_URL, {"instId": instrument})
@@ -207,7 +236,7 @@ def validate_document(data: dict) -> None:
             number(asset[key], f"{asset['symbol']}.{key}")
         if asset["exposure"] != 0 and asset["quantity"] == 0:
             raise DataError(f"{asset['symbol']} 非零敞口缺少持仓数量")
-        if asset["exposure"] != 0:
+        if asset["exposure"] != 0 and canonical_symbol(asset["symbol"]) not in HK_YAHOO_SYMBOLS:
             instrument_for(asset)
 
 
@@ -235,9 +264,14 @@ def update_document(data: dict, client: HttpClient, days: int = 30) -> tuple[dic
             skipped_zero_exposure.append(asset["symbol"])
             LOG.info("跳过零敞口资产 %s", asset["symbol"])
             continue
-        instrument = instrument_for(asset)
-        key = f"price.{instrument}"
-        jobs[key] = (fetch_price, instrument)
+        yahoo_symbol = HK_YAHOO_SYMBOLS.get(canonical_symbol(asset["symbol"]))
+        if yahoo_symbol:
+            key = f"price.yahoo.{yahoo_symbol}"
+            jobs[key] = (fetch_hk_price, yahoo_symbol)
+        else:
+            instrument = instrument_for(asset)
+            key = f"price.{instrument}"
+            jobs[key] = (fetch_price, instrument)
         targets.setdefault(key, []).append(asset)
     report = {"status": "success", "succeeded": [], "failed": {}, "skipped": skipped,
               "skippedZeroExposure": skipped_zero_exposure}
@@ -253,13 +287,6 @@ def update_document(data: dict, client: HttpClient, days: int = 30) -> tuple[dic
                         raise DataError("拒绝用较旧指数覆盖已有数据")
                     target.update(result)
                 else:
-                    if key == "price.XIAOMI-USDT-SWAP":
-                        result = number(
-                            (Decimal(str(result)) * Decimal("7.84")).quantize(
-                                Decimal("0.01"), rounding=ROUND_HALF_UP
-                            ),
-                            "小米换算后价格",
-                        )
                     changes = [(asset, updated_exposure(asset, result)) for asset in targets[key]]
                     for asset, exposure in changes:
                         asset["price"] = result

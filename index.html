@@ -388,8 +388,8 @@
     ];
   }
   let closePositionDetail = () => {};
-  const tradeIcons = new Set('AAPL ALIBABA ANTHROPIC AVGO BE BNB BRK-B BTC COST CRCL CXMT ETH GOOGL MICRON MRVL NDAQ NVDA OpenAI PLTR QCOM SPCX TENCENT TSLA TSMC XIAOMI ZHIPU'.split(' '));
-  const tradeIconAliases = {MU:'MICRON', MUU:'MICRON', NVDL:'NVDA', HK1810:'XIAOMI', BRKB:'BRK-B'};
+  const tradeIcons = new Set('AAPL ALIBABA ANTHROPIC AVGO BE BNB BRK-B BTC COST CRCL CXMT ETH GOOGL MICRON MRVL NDAQ NVDA OpenAI PLTR QCOM SPCX TENCENT TSLA TSMC XIAOMI Lenovo ZHIPU'.split(' '));
+  const tradeIconAliases = {MU:'MICRON', MUU:'MICRON', NVDL:'NVDA', HK1810:'XIAOMI', HK0700:'TENCENT', HK0992:'Lenovo', LENOVO:'Lenovo', BRKB:'BRK-B'};
   function parseTradeHistory(text) {
     const rows=[];
     let row=[], field='', quoted=false;
@@ -419,9 +419,11 @@
       // The export stores cents; sum integers so grouped totals remain exact.
       const cents=Math.round(gain*100);
       if (!cents) continue;
-      const symbol=pair.split('/')[0].toUpperCase();
+      const rawSymbol=pair.split('/')[0].toUpperCase();
+      const symbol=rawSymbol==='XIAOMI' ? 'HK1810' : rawSymbol;
+      const displayPair=symbol+pair.slice(pair.indexOf('/'));
       const icon=tradeIconAliases[symbol] || symbol;
-      const known=tradeIcons.has(icon), key=known ? pair : '其他';
+      const known=tradeIcons.has(icon), key=known ? displayPair : '其他';
       if (!groups.has(key)) groups.set(key,{symbol:known?symbol:'其他',name:key,logo:known?`asset/${icon}.svg`:'',cents:0});
       groups.get(key).cents+=cents;
     }
