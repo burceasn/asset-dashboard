@@ -3,13 +3,13 @@
     "name": "Bruce's Portfolio",
     "subtitle": "全局资产控制台",
     "currency": "USD",
-    "updatedAt": "2026-10-13T00:55:02+08:00"
+    "updatedAt": "2026-10-13T10:38:34+08:00"
   },
   "sentiment": {
     "usStocks": {
       "name": "美股",
       "source": "CNN Fear & Greed",
-      "score": 47,
+      "score": 46,
       "status": "中性",
       "history": [
         49,
@@ -41,7 +41,7 @@
         42,
         40,
         46,
-        47
+        46
       ],
       "historyDates": [
         "2026-08-31",
@@ -75,15 +75,14 @@
         "2026-10-09",
         "2026-10-12"
       ],
-      "observedAt": "2026-10-12T16:46:53+00:00"
+      "observedAt": "2026-10-12T23:59:52+00:00"
     },
     "crypto": {
       "name": "加密货币",
       "source": "Alternative.me Fear & Greed",
-      "score": 69,
+      "score": 57,
       "status": "贪婪",
       "history": [
-        61,
         57,
         69,
         51,
@@ -112,10 +111,10 @@
         59,
         64,
         61,
-        69
+        69,
+        57
       ],
       "historyDates": [
-        "2026-09-13",
         "2026-09-14",
         "2026-09-15",
         "2026-09-16",
@@ -144,9 +143,10 @@
         "2026-10-09",
         "2026-10-10",
         "2026-10-11",
-        "2026-10-12"
+        "2026-10-12",
+        "2026-10-13"
       ],
-      "observedAt": "2026-10-12T00:00:00+00:00"
+      "observedAt": "2026-10-13T00:00:00+00:00"
     }
   },
   "liquidity": {
@@ -208,8 +208,8 @@
       "logo": "asset/BE.svg",
       "quantity": 7.65,
       "cost": 261.2,
-      "price": 259.03,
-      "exposure": 1981.58,
+      "price": 255.5,
+      "exposure": 1954.58,
       "margin": 7422.86,
       "color": "#3CAD3A"
     },
@@ -244,8 +244,8 @@
       "logo": "asset/CRCL.svg",
       "quantity": 122.4,
       "cost": 85.5,
-      "price": 83.73,
-      "exposure": 10248.55,
+      "price": 82.55,
+      "exposure": 10104.12,
       "margin": 394,
       "color": "#0B53BF"
     },
@@ -376,8 +376,8 @@
       "logo": "asset/XIAOMI.svg",
       "quantity": 81.78343949,
       "cost": 24.43,
-      "price": 24.52,
-      "exposure": 2005.33,
+      "price": 24.16,
+      "exposure": 1975.89,
       "margin": 1218.9,
       "color": "#FF6900"
     },
@@ -470,10 +470,10 @@
       "direction": "long",
       "name": "Bitcoin",
       "logo": "asset/BTC.svg",
-      "quantity": 0.0589013,
+      "quantity": 0.05890188,
       "cost": 71000,
-      "price": 82606.1,
-      "exposure": 4865.61,
+      "price": 82800.6,
+      "exposure": 4877.11,
       "margin": 5000,
       "color": "#F7931A"
     },
