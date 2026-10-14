@@ -3,14 +3,14 @@
     "name": "Bruce's Portfolio",
     "subtitle": "全局资产控制台",
     "currency": "USD",
-    "updatedAt": "2026-10-14T20:59:50+08:00"
+    "updatedAt": "2026-10-15T07:59:29+08:00"
   },
   "sentiment": {
     "usStocks": {
       "name": "美股",
       "source": "CNN Fear & Greed",
-      "score": 45,
-      "status": "中性",
+      "score": 32,
+      "status": "恐惧",
       "history": [
         46,
         48,
@@ -40,8 +40,8 @@
         40,
         46,
         46,
-        45,
-        45
+        44,
+        32
       ],
       "historyDates": [
         "2026-09-02",
@@ -75,7 +75,7 @@
         "2026-10-13",
         "2026-10-14"
       ],
-      "observedAt": "2026-10-14T12:41:46+00:00"
+      "observedAt": "2026-10-14T23:42:46+00:00"
     },
     "crypto": {
       "name": "加密货币",
@@ -208,8 +208,8 @@
       "logo": "asset/BE.svg",
       "quantity": 7.65,
       "cost": 261.2,
-      "price": 255.42,
-      "exposure": 1953.96,
+      "price": 231.54,
+      "exposure": 1771.28,
       "margin": 7422.86,
       "color": "#3CAD3A"
     },
@@ -242,10 +242,10 @@
       "direction": "long",
       "name": "Circle",
       "logo": "asset/CRCL.svg",
-      "quantity": 122.4,
-      "cost": 85.5,
-      "price": 82.39,
-      "exposure": 10084.54,
+      "quantity": 142.3,
+      "cost": 84.74,
+      "price": 77.53,
+      "exposure": 11032.52,
       "margin": 394,
       "color": "#0B53BF"
     },
@@ -470,10 +470,10 @@
       "direction": "long",
       "name": "Bitcoin",
       "logo": "asset/BTC.svg",
-      "quantity": 0.0595003,
+      "quantity": 0.05950093,
       "cost": 71000,
-      "price": 82722.2,
-      "exposure": 4922.0,
+      "price": 81670.8,
+      "exposure": 4859.49,
       "margin": 5000,
       "color": "#F7931A"
     },
