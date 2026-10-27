@@ -3,16 +3,15 @@
     "name": "Bruce's Portfolio",
     "subtitle": "全局资产控制台",
     "currency": "USD",
-    "updatedAt": "2026-10-27T08:38:03+08:00"
+    "updatedAt": "2026-10-27T21:29:31+08:00"
   },
   "sentiment": {
     "usStocks": {
       "name": "美股",
       "source": "CNN Fear & Greed",
-      "score": 27,
+      "score": 29,
       "status": "恐惧",
       "history": [
-        28,
         27,
         28,
         30,
@@ -41,10 +40,10 @@
         27,
         19,
         23,
-        27
+        29,
+        29
       ],
       "historyDates": [
-        "2026-09-15",
         "2026-09-16",
         "2026-09-17",
         "2026-09-18",
@@ -73,9 +72,10 @@
         "2026-10-21",
         "2026-10-22",
         "2026-10-23",
-        "2026-10-26"
+        "2026-10-26",
+        "2026-10-27"
       ],
-      "observedAt": "2026-10-26T23:59:53+00:00"
+      "observedAt": "2026-10-27T13:09:40+00:00"
     },
     "crypto": {
       "name": "加密货币",
@@ -208,8 +208,8 @@
       "logo": "asset/BE.svg",
       "quantity": 27.75,
       "cost": 223.16,
-      "price": 208.7,
-      "exposure": 5791.43,
+      "price": 215.71,
+      "exposure": 5985.95,
       "margin": 7422.86,
       "color": "#3CAD3A"
     },
@@ -244,8 +244,8 @@
       "logo": "asset/CRCL.svg",
       "quantity": 9.9920046,
       "cost": 84.74,
-      "price": 80.5,
-      "exposure": 804.36,
+      "price": 79.69,
+      "exposure": 796.26,
       "margin": 394,
       "color": "#0B53BF"
     },
@@ -254,10 +254,10 @@
       "direction": "long",
       "name": "Alphabet",
       "logo": "asset/GOOGL.svg",
-      "quantity": 8.97,
-      "cost": 334.13,
-      "price": 319.55,
-      "exposure": 2866.36,
+      "quantity": 11.47,
+      "cost": 330.87,
+      "price": 318.02,
+      "exposure": 3647.69,
       "margin": 1768,
       "color": "#4285F4"
     },
@@ -470,10 +470,10 @@
       "direction": "long",
       "name": "Bitcoin",
       "logo": "asset/BTC.svg",
-      "quantity": 0.06720861,
+      "quantity": 0.06720936,
       "cost": 71000,
-      "price": 80342.8,
-      "exposure": 5399.73,
+      "price": 80166.3,
+      "exposure": 5387.93,
       "margin": 5000,
       "color": "#F7931A"
     },
