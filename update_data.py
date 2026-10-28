@@ -227,9 +227,16 @@ def validate_document(data: dict) -> None:
             raise DataError(f"缺少 sentiment.{key}")
     if not isinstance(data["holdings"], list):
         raise DataError("holdings 必须为数组")
+    position_keys = set()
     for asset in data["holdings"]:
         if not isinstance(asset, dict) or not isinstance(asset.get("symbol"), str) or not asset["symbol"]:
             raise DataError("holdings 中存在无效持仓")
+        if asset.get("direction") not in {"long", "short"}:
+            raise DataError(f"{asset['symbol']} 的 direction 无效")
+        key = (canonical_symbol(asset["symbol"]), asset["direction"])
+        if key in position_keys:
+            raise DataError(f"重复持仓 {key}，请先合并已有记录")
+        position_keys.add(key)
         for key in ("price", "quantity", "cost", "exposure", "margin"):
             if not isinstance(asset.get(key), (int, float)):
                 raise DataError(f"{asset['symbol']}.{key} 必须为 JSON 数值")

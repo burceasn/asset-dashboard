@@ -326,8 +326,15 @@
     }
     if (!finite(d.liquidity.cash?.balance) || !finite(d.liquidity.margin?.balance) || !finite(d.liquidity.margin?.annualRate)) throw Error('现金或保证金数据无效');
     if (!Array.isArray(d.holdings)) throw Error('持仓格式无效');
+    const positionKeys=new Set();
     for (const a of d.holdings) {
       if (!a || !finite(a.exposure)) throw Error('持仓敞口无效');
+      if (typeof a.symbol!=='string' || !a.symbol || !['long','short'].includes(a.direction)) throw Error('持仓代码或方向无效');
+      const symbol=a.symbol.toUpperCase();
+      const canonical=({XIAOMI:'HK1810',TENCENT:'HK0700',LENOVO:'HK0992'})[symbol] || symbol;
+      const key=canonical+':'+a.direction;
+      if (positionKeys.has(key)) throw Error('重复持仓：'+key);
+      positionKeys.add(key);
       if (a.exposure === 0) continue;
       if (!['quantity','cost','price','margin'].every(k => finite(a[k]))) throw Error('持仓数值无效');
     }
@@ -388,7 +395,7 @@
     ];
   }
   let closePositionDetail = () => {};
-  const tradeIcons = new Set('AAPL ALIBABA ANTHROPIC AVGO BE BNB BRK-B BTC COST CRCL CXMT ETH GOOGL MICRON MRVL NDAQ NVDA OpenAI PLTR QCOM SPCX TENCENT TSLA TSMC XIAOMI Lenovo ZHIPU'.split(' '));
+  const tradeIcons = new Set('AAPL ALIBABA ANTHROPIC AVGO BE BNB BRK-B BTC COST CRCL CRWV CXMT ETH GOOGL MICRON MRVL NDAQ NVDA OpenAI PLTR QCOM SPCX TENCENT TSLA TSMC XIAOMI Lenovo ZHIPU'.split(' '));
   const tradeIconAliases = {MU:'MICRON', MUU:'MICRON', NVDL:'NVDA', HK1810:'XIAOMI', HK0700:'TENCENT', HK0992:'Lenovo', LENOVO:'Lenovo', BRKB:'BRK-B'};
   function parseTradeHistory(text) {
     const rows=[];
