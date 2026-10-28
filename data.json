@@ -243,7 +243,7 @@
       "name": "Circle",
       "logo": "asset/CRCL.svg",
       "quantity": 13.57877758,
-      "cost": 84.74,
+      "cost": 80.0,
       "price": 81.45,
       "exposure": 1105.94,
       "margin": 394,
@@ -329,7 +329,7 @@
       "quantity": 0E-8,
       "cost": 217,
       "price": 218.79,
-      "exposure": 0.00,
+      "exposure": 997,
       "margin": 997,
       "color": "#76B900"
     },
