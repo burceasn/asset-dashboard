@@ -3,16 +3,15 @@
     "name": "Bruce's Portfolio",
     "subtitle": "全局资产控制台",
     "currency": "USD",
-    "updatedAt": "2026-11-03T10:58:26+08:00"
+    "updatedAt": "2026-11-03T23:25:19+08:00"
   },
   "sentiment": {
     "usStocks": {
       "name": "美股",
       "source": "CNN Fear & Greed",
-      "score": 23,
+      "score": 20,
       "status": "极端恐惧",
       "history": [
-        35,
         34,
         35,
         37,
@@ -41,10 +40,10 @@
         34,
         31,
         26,
-        23
+        19,
+        20
       ],
       "historyDates": [
-        "2026-09-22",
         "2026-09-23",
         "2026-09-24",
         "2026-09-25",
@@ -73,9 +72,10 @@
         "2026-10-28",
         "2026-10-29",
         "2026-10-30",
-        "2026-11-02"
+        "2026-11-02",
+        "2026-11-03"
       ],
-      "observedAt": "2026-11-02T23:59:46+00:00"
+      "observedAt": "2026-11-03T15:22:29+00:00"
     },
     "crypto": {
       "name": "加密货币",
@@ -206,10 +206,10 @@
       "direction": "long",
       "name": "Bloom Energy",
       "logo": "asset/BE.svg",
-      "quantity": 41.39,
-      "cost": 217.18,
-      "price": 203.23,
-      "exposure": 8411.69,
+      "quantity": 48.42,
+      "cost": 214.53,
+      "price": 217.96,
+      "exposure": 10553.62,
       "margin": 7422.86,
       "color": "#3CAD3A"
     },
@@ -254,10 +254,10 @@
       "direction": "long",
       "name": "CoreWeave",
       "logo": "asset/CRWV.svg",
-      "quantity": 134.47,
-      "cost": 57.14,
-      "price": 50.85,
-      "exposure": 6837.8,
+      "quantity": 162.52,
+      "cost": 55.89,
+      "price": 53.19,
+      "exposure": 8644.44,
       "margin": 0,
       "color": "#2741E7"
     },
@@ -482,10 +482,10 @@
       "direction": "long",
       "name": "Bitcoin",
       "logo": "asset/BTC.svg",
-      "quantity": 0.08115083,
+      "quantity": 0.08115158,
       "cost": 71000,
-      "price": 76752.4,
-      "exposure": 6228.52,
+      "price": 77266.3,
+      "exposure": 6270.28,
       "margin": 5000,
       "color": "#F7931A"
     },
