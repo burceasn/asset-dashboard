@@ -3,16 +3,15 @@
     "name": "Bruce's Portfolio",
     "subtitle": "全局资产控制台",
     "currency": "USD",
-    "updatedAt": "2026-11-09T09:03:06+08:00"
+    "updatedAt": "2026-11-10T01:44:49+08:00"
   },
   "sentiment": {
     "usStocks": {
       "name": "美股",
       "source": "CNN Fear & Greed",
-      "score": 22,
-      "status": "极端恐惧",
+      "score": 32,
+      "status": "恐惧",
       "history": [
-        32,
         31,
         30,
         29,
@@ -41,10 +40,10 @@
         24,
         34,
         20,
-        22
+        24,
+        32
       ],
       "historyDates": [
-        "2026-09-28",
         "2026-09-29",
         "2026-09-30",
         "2026-10-01",
@@ -73,9 +72,10 @@
         "2026-11-03",
         "2026-11-04",
         "2026-11-05",
-        "2026-11-06"
+        "2026-11-06",
+        "2026-11-09"
       ],
-      "observedAt": "2026-11-06T23:59:54+00:00"
+      "observedAt": "2026-11-09T17:40:08+00:00"
     },
     "crypto": {
       "name": "加密货币",
@@ -208,8 +208,8 @@
       "logo": "asset/BE.svg",
       "quantity": 95.53,
       "cost": 196.53,
-      "price": 173.43,
-      "exposure": 16567.77,
+      "price": 195.98,
+      "exposure": 18721.97,
       "margin": 7422.86,
       "color": "#3CAD3A"
     },
@@ -268,8 +268,8 @@
       "logo": "asset/GOOGL.svg",
       "quantity": 2.00000001,
       "cost": 330.87,
-      "price": 286.85,
-      "exposure": 573.7,
+      "price": 291.21,
+      "exposure": 582.42,
       "margin": 1768,
       "color": "#4285F4"
     },
@@ -280,8 +280,8 @@
       "logo": "asset/MICRON.svg",
       "quantity": 3.32,
       "cost": 707.69,
-      "price": 686.37,
-      "exposure": 2278.75,
+      "price": 734.1,
+      "exposure": 2437.21,
       "margin": 17429.46,
       "color": "#BD03F7"
     },
@@ -484,8 +484,8 @@
       "logo": "asset/BTC.svg",
       "quantity": 0.0078757,
       "cost": 71000,
-      "price": 75302.6,
-      "exposure": 593.06,
+      "price": 74664.8,
+      "exposure": 588.04,
       "margin": 5000,
       "color": "#F7931A"
     },
