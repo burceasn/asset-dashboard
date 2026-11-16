@@ -3,16 +3,15 @@
     "name": "Bruce's Portfolio",
     "subtitle": "全局资产控制台",
     "currency": "USD",
-    "updatedAt": "2026-11-16T09:12:25+08:00"
+    "updatedAt": "2026-11-17T01:19:27+08:00"
   },
   "sentiment": {
     "usStocks": {
       "name": "美股",
       "source": "CNN Fear & Greed",
-      "score": 39,
+      "score": 35,
       "status": "恐惧",
       "history": [
-        43,
         47,
         45,
         39,
@@ -41,10 +40,10 @@
         37,
         36,
         40,
-        39
+        37,
+        35
       ],
       "historyDates": [
-        "2026-10-05",
         "2026-10-06",
         "2026-10-07",
         "2026-10-08",
@@ -73,9 +72,10 @@
         "2026-11-10",
         "2026-11-11",
         "2026-11-12",
-        "2026-11-13"
+        "2026-11-13",
+        "2026-11-16"
       ],
-      "observedAt": "2026-11-13T23:59:56+00:00"
+      "observedAt": "2026-11-16T17:13:03+00:00"
     },
     "crypto": {
       "name": "加密货币",
@@ -208,8 +208,8 @@
       "logo": "asset/BE.svg",
       "quantity": 103.05,
       "cost": 195.75,
-      "price": 187.51,
-      "exposure": 19322.91,
+      "price": 178.86,
+      "exposure": 18431.52,
       "margin": 7422.86,
       "color": "#3CAD3A"
     },
@@ -256,8 +256,8 @@
       "logo": "asset/CRWV.svg",
       "quantity": 109.49,
       "cost": 52.97,
-      "price": 52.33,
-      "exposure": 5729.61,
+      "price": 49.9,
+      "exposure": 5463.55,
       "margin": 0,
       "color": "#2741E7"
     },
@@ -328,8 +328,8 @@
       "logo": "asset/NVDA.svg",
       "quantity": 3.99680001,
       "cost": 217,
-      "price": 163.16,
-      "exposure": 652.12,
+      "price": 158.0,
+      "exposure": 631.49,
       "margin": 997,
       "color": "#76B900"
     },
@@ -482,10 +482,10 @@
       "direction": "long",
       "name": "Bitcoin",
       "logo": "asset/BTC.svg",
-      "quantity": 0.04566335,
+      "quantity": 0.04566427,
       "cost": 71000,
-      "price": 64843.2,
-      "exposure": 2960.96,
+      "price": 65049.8,
+      "exposure": 2970.45,
       "margin": 5000,
       "color": "#F7931A"
     },
