@@ -3,16 +3,15 @@
     "name": "Bruce's Portfolio",
     "subtitle": "全局资产控制台",
     "currency": "USD",
-    "updatedAt": "2026-11-17T12:01:48+08:00"
+    "updatedAt": "2026-11-18T00:59:50+08:00"
   },
   "sentiment": {
     "usStocks": {
       "name": "美股",
       "source": "CNN Fear & Greed",
-      "score": 31,
-      "status": "恐惧",
+      "score": 24,
+      "status": "极端恐惧",
       "history": [
-        47,
         45,
         39,
         44,
@@ -41,10 +40,10 @@
         36,
         40,
         37,
-        31
+        31,
+        24
       ],
       "historyDates": [
-        "2026-10-06",
         "2026-10-07",
         "2026-10-08",
         "2026-10-09",
@@ -73,9 +72,10 @@
         "2026-11-11",
         "2026-11-12",
         "2026-11-13",
-        "2026-11-16"
+        "2026-11-16",
+        "2026-11-17"
       ],
-      "observedAt": "2026-11-16T23:59:54+00:00"
+      "observedAt": "2026-11-17T16:55:30+00:00"
     },
     "crypto": {
       "name": "加密货币",
@@ -206,10 +206,10 @@
       "direction": "long",
       "name": "Bloom Energy",
       "logo": "asset/BE.svg",
-      "quantity": 103.05,
-      "cost": 195.75,
-      "price": 181.71,
-      "exposure": 18725.22,
+      "quantity": 116.61,
+      "cost": 192.85,
+      "price": 168.19,
+      "exposure": 19612.64,
       "margin": 7422.86,
       "color": "#3CAD3A"
     },
@@ -256,8 +256,8 @@
       "logo": "asset/CRWV.svg",
       "quantity": 109.49,
       "cost": 52.97,
-      "price": 50.63,
-      "exposure": 5543.48,
+      "price": 49.11,
+      "exposure": 5377.05,
       "margin": 0,
       "color": "#2741E7"
     },
@@ -326,10 +326,10 @@
       "direction": "long",
       "name": "NVIDIA",
       "logo": "asset/NVDA.svg",
-      "quantity": 3.99680001,
+      "quantity": 0.0,
       "cost": 217,
       "price": 157.76,
-      "exposure": 630.54,
+      "exposure": 0.0,
       "margin": 997,
       "color": "#76B900"
     },
@@ -482,10 +482,10 @@
       "direction": "long",
       "name": "Bitcoin",
       "logo": "asset/BTC.svg",
-      "quantity": 0.0456649,
+      "quantity": 0.02047153,
       "cost": 71000,
-      "price": 65044.0,
-      "exposure": 2970.23,
+      "price": 63765.2,
+      "exposure": 1305.37,
       "margin": 5000,
       "color": "#F7931A"
     },
