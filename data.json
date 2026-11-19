@@ -3,7 +3,7 @@
     "name": "Bruce's Portfolio",
     "subtitle": "全局资产控制台",
     "currency": "USD",
-    "updatedAt": "2026-11-19T10:41:11+08:00"
+    "updatedAt": "2026-11-20T00:43:33+08:00"
   },
   "sentiment": {
     "usStocks": {
@@ -12,7 +12,6 @@
       "score": 25,
       "status": "恐惧",
       "history": [
-        39,
         44,
         45,
         46,
@@ -41,10 +40,10 @@
         37,
         31,
         26,
+        30,
         25
       ],
       "historyDates": [
-        "2026-10-08",
         "2026-10-09",
         "2026-10-12",
         "2026-10-13",
@@ -73,9 +72,10 @@
         "2026-11-13",
         "2026-11-16",
         "2026-11-17",
-        "2026-11-18"
+        "2026-11-18",
+        "2026-11-19"
       ],
-      "observedAt": "2026-11-18T23:59:50+00:00"
+      "observedAt": "2026-11-19T16:38:26+00:00"
     },
     "crypto": {
       "name": "加密货币",
@@ -208,8 +208,8 @@
       "logo": "asset/BE.svg",
       "quantity": 116.61,
       "cost": 192.85,
-      "price": 174.63,
-      "exposure": 20363.6,
+      "price": 177.6,
+      "exposure": 20709.94,
       "margin": 7422.86,
       "color": "#3CAD3A"
     },
@@ -256,8 +256,8 @@
       "logo": "asset/CRWV.svg",
       "quantity": 109.49,
       "cost": 52.97,
-      "price": 48.44,
-      "exposure": 5303.7,
+      "price": 49.2,
+      "exposure": 5386.91,
       "margin": 0,
       "color": "#2741E7"
     },
@@ -388,8 +388,8 @@
       "logo": "asset/XIAOMI.svg",
       "quantity": 185.22292994,
       "cost": 29.6,
-      "price": 28.42,
-      "exposure": 5264.04,
+      "price": 28.52,
+      "exposure": 5282.56,
       "margin": 1218.9,
       "color": "#FF6900"
     },
@@ -482,10 +482,10 @@
       "direction": "long",
       "name": "Bitcoin",
       "logo": "asset/BTC.svg",
-      "quantity": 0.02047348,
+      "quantity": 0.02047428,
       "cost": 71000,
-      "price": 62649.6,
-      "exposure": 1282.66,
+      "price": 63216.5,
+      "exposure": 1294.31,
       "margin": 5000,
       "color": "#F7931A"
     },
