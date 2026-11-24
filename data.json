@@ -3,13 +3,13 @@
     "name": "Bruce's Portfolio",
     "subtitle": "全局资产控制台",
     "currency": "USD",
-    "updatedAt": "2026-11-24T13:23:15+08:00"
+    "updatedAt": "2026-11-25T03:01:22+08:00"
   },
   "sentiment": {
     "usStocks": {
       "name": "美股",
       "source": "CNN Fear & Greed",
-      "score": 17,
+      "score": 18,
       "status": "极端恐惧",
       "history": [
         29,
@@ -40,8 +40,8 @@
         30,
         16,
         19,
-        17,
-        17
+        15,
+        18
       ],
       "historyDates": [
         "2026-10-14",
@@ -75,7 +75,7 @@
         "2026-11-23",
         "2026-11-24"
       ],
-      "observedAt": "2026-11-24T01:00:00+00:00"
+      "observedAt": "2026-11-24T18:57:21+00:00"
     },
     "crypto": {
       "name": "加密货币",
